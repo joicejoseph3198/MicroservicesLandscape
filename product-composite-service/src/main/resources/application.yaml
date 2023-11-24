@@ -1,0 +1,20 @@
+server.port: 7000
+
+app:
+ product-service:
+  host: localhost
+  port: 7001
+ review-service:
+  host: localhost
+  port: 7003
+
+---
+spring.config.activate.on-profile: docker
+
+app:
+ product-service:
+  host: product
+  port: 8080
+ review-service:
+  host: review
+  port: 8080

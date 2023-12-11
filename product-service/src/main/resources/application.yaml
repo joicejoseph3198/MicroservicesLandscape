@@ -1,7 +1,32 @@
 server.port: 7001
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: productdb
+logging:
+  level:
+    root: ERROR
+    org.springframework.web: ERROR
+    com.example: DEBUG
+    org.hibernate: ERROR
 
 ---
 spring.config.activate.on-profile: docker
 
 server.port: 8080
 
+logging:
+  level:
+    root: ERROR
+    org.springframework.web: ERROR
+    com.example: DEBUG
+    org.hibernate: ERROR
+
+spring:
+  data:
+    mongodb:
+      host: mongodb
+      port: 27017
+      database: productdb

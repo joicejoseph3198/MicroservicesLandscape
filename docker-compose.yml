@@ -6,12 +6,16 @@ services:
     mem_limit: 512M
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - mongodb
   review:
     container_name: review
     build: ./review-service
     mem_limit: 512M
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - mysql
   product-composite:
     container_name: composite
     build: ./product-composite-service
@@ -20,3 +24,35 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+  mongodb:
+    container_name: mongodata
+    image: mongo:6.0.4
+    mem_limit: 512m
+    ports:
+      - "27017:27017"
+    command: mongod
+    healthcheck:
+      test: "mongostat -n 1"
+      interval: 5s
+      timeout: 2s
+      retries: 60
+  mysql:
+    container_name: mysqldata
+    image: mysql:8.0.32
+    mem_limit: 512m
+    volumes:
+      - my_db:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_USER=joice
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=reviewdb
+    healthcheck:
+      test: "mysql -uroot -p$$MYSQL_ROOT_PASSWORD  -e 'SHOW DATABASES'"
+      interval: 5s
+      timeout: 2s
+      retries: 60
+volumes:
+  my_db:

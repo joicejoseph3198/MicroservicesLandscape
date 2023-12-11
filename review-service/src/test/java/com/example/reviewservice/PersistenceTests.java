@@ -4,6 +4,8 @@ import com.example.reviewservice.entity.Review;
 import com.example.reviewservice.enums.Rating;
 import com.example.reviewservice.repository.ReviewRepository;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +68,4 @@ class PersistenceTests extends MySqlTestBase{
         List<Review> foundReviews = reviewRepository.findByProductId(savedReview.getProductId());
         assertEquals(savedReview, foundReviews.get(0));
     }
-
-
-
 }

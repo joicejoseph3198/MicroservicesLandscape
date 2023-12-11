@@ -1,7 +1,36 @@
 server:
   port: 7003
 
+spring:
+ datasource:
+  driverClassName: com.mysql.jdbc.Driver
+  url: jdbc:mysql://localhost:3306/reviewdb
+  username: root
+  password: root
+jpa:
+  hibernate.ddl-auto: update
+  generate-ddl: true
+  show-sql: true
+
 ---
 spring.config.activate.on-profile: docker
 
 server.port: 8080
+
+logging:
+  level:
+    root: ERROR
+    org.springframework.web: ERROR
+    com.example: DEBUG
+    org.hibernate: ERROR
+
+spring:
+  datasource:
+    driverClassName: com.mysql.jdbc.Driver
+    username: joice
+    password: password
+    url: jdbc:mysql://mysqldata:3306/reviewdb
+jpa:
+  hibernate.ddl-auto: update
+  generate-ddl: true
+  show-sql: true

@@ -4,14 +4,10 @@ import com.example.productservice.entity.Product;
 import com.example.productservice.enums.*;
 import com.example.productservice.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.testcontainers.shaded.org.yaml.snakeyaml.constructor.DuplicateKeyException;
-
 import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.Optional;
 import java.util.UUID;
 

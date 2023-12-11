@@ -8,6 +8,13 @@ app:
   host: localhost
   port: 7003
 
+logging:
+ level:
+  root: ERROR
+  org.springframework.web: ERROR
+  com.example: DEBUG
+  org.hibernate: ERROR
+
 ---
 spring.config.activate.on-profile: docker
 
@@ -18,3 +25,10 @@ app:
  review-service:
   host: review
   port: 8080
+
+logging:
+ level:
+  root: ERROR
+  org.springframework.web: ERROR
+  com.example: DEBUG
+  org.hibernate: ERROR

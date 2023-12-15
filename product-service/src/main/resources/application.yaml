@@ -15,7 +15,7 @@ logging:
 ---
 spring.config.activate.on-profile: docker
 
-server.port: 8080
+server.port: 8081
 
 logging:
   level:
@@ -27,6 +27,6 @@ logging:
 spring:
   data:
     mongodb:
-      host: mongodb
+      host: mongo
       port: 27017
       database: productdb

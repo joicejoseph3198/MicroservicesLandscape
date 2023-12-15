@@ -15,7 +15,7 @@ jpa:
 ---
 spring.config.activate.on-profile: docker
 
-server.port: 8080
+server.port: 8082
 
 logging:
   level:
@@ -29,7 +29,7 @@ spring:
     driverClassName: com.mysql.jdbc.Driver
     username: joice
     password: password
-    url: jdbc:mysql://mysqldata:3306/reviewdb
+    url: jdbc:mysql://mysql:3306/reviewdb
 jpa:
   hibernate.ddl-auto: update
   generate-ddl: true

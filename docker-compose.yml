@@ -8,6 +8,8 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       - mongodb
+    ports:
+      - "8081:8081"
   review:
     container_name: review
     build: ./review-service
@@ -16,6 +18,8 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       - mysql
+    ports:
+      - "8082:8082"
   product-composite:
     container_name: composite
     build: ./product-composite-service
@@ -25,9 +29,11 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
   mongodb:
-    container_name: mongodata
+    container_name: mongo
     image: mongo:6.0.4
     mem_limit: 512m
+    volumes:
+      - mongodata:/data/db
     ports:
       - "27017:27017"
     command: mongod
@@ -37,11 +43,11 @@ services:
       timeout: 2s
       retries: 60
   mysql:
-    container_name: mysqldata
+    container_name: mysql
     image: mysql:8.0.32
     mem_limit: 512m
     volumes:
-      - my_db:/var/lib/mysql
+      - sqldata:/var/lib/mysql
     ports:
       - "3306:3306"
     environment:
@@ -55,4 +61,6 @@ services:
       timeout: 2s
       retries: 60
 volumes:
-  my_db:
+  sqldata:
+  mongodata:
+

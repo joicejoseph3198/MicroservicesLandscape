@@ -21,10 +21,10 @@ spring.config.activate.on-profile: docker
 app:
  product-service:
   host: product
-  port: 8080
+  port: 8081
  review-service:
   host: review
-  port: 8080
+  port: 8082
 
 logging:
  level:

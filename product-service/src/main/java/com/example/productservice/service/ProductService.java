@@ -1,5 +1,9 @@
 package com.example.productservice.service;
 
+import com.example.UtilService.dto.ResponseDTO;
+import com.example.productservice.dto.ProductDTO;
+
 public interface ProductService {
-    String getProduct(int id);
+    ResponseDTO<ProductDTO> getProductBySkuCode(String skuCode);
+    ResponseDTO<String> createProduct(ProductDTO productDTO);
 }

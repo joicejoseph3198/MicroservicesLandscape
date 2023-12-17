@@ -1,4 +1,4 @@
-package com.example.productservice.mapper;
+package com.example.UtilService.base;
 
 import java.util.List;
 public interface BaseMapper<E, D> {
@@ -6,7 +6,6 @@ public interface BaseMapper<E, D> {
     E toEntity(D dto);
     List<D> toDtoList(List<E> entityList);
     List<E> toEntityList(List<D> dtoList);
-
 }
 
 

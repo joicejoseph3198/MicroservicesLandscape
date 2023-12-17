@@ -26,5 +26,8 @@ public class ProductController {
     public ResponseDTO<String> createProduct(@RequestBody ProductDTO productDTO){
         return productService.createProduct(productDTO);
     }
-
+    @GetMapping(value = "/generateDummy")
+    ResponseDTO<String> generateDummyRecord(){
+        return productService.insertDummyData();
+    }
 }

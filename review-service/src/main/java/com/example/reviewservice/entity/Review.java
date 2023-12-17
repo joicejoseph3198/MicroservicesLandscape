@@ -4,22 +4,21 @@ import com.example.reviewservice.enums.Rating;
 import jakarta.persistence.*;
 import lombok.*;
 
-
 @Entity
-@Table(name = "reviews",indexes = {@Index(name = "review_idx",
-        unique = true,columnList = "id,productId")})
+@Table(name = "reviews")
 @Builder
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Review {
+public class Review{
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String productId;
-    private String content;
+    private String description;
     private String title;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rating")
     private Rating rating;
 
 }

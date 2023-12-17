@@ -5,7 +5,6 @@ import com.example.reviewservice.enums.Rating;
 import com.example.reviewservice.repository.ReviewRepository;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,7 @@ class PersistenceTests extends MySqlTestBase{
         reviewRepository.deleteAll();
         Review review = Review
                 .builder()
-                .content("Grape!")
+                .description("Grape!")
                 .productId("TestId")
                 .title("Testing Review")
                 .rating(Rating.FOUR)
@@ -42,7 +41,7 @@ class PersistenceTests extends MySqlTestBase{
                 .rating(Rating.THREE)
                 .productId("TestId")
                 .title("Mid Product")
-                .content("Mid.")
+                .description("Mid.")
                 .build();
         reviewRepository.save(newReview);
         assertEquals(2, reviewRepository.findByProductId("TestId").size());

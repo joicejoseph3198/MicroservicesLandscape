@@ -1,11 +1,12 @@
 package com.example.reviewservice.controller;
 
+import com.example.UtilService.dto.ResponseDTO;
+import com.example.reviewservice.dto.ReviewDTO;
 import com.example.reviewservice.service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/review")
@@ -17,9 +18,17 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @GetMapping(value = "/{id}")
-    String getReviewByProductId(@PathVariable int id){
+    @PostMapping(value = "/create")
+    ResponseDTO<String> createReview(ReviewDTO reviewDTO){
+        return reviewService.createReview(reviewDTO);
+    }
+    @GetMapping(value = "/associated/{id}")
+    ResponseDTO<List<ReviewDTO>> getReviewByProductId(@PathVariable String id){
         return reviewService.getReviewByProductId(id);
+    }
+    @GetMapping(value = "/generateDummy")
+    ResponseDTO<String> generateDummyRecord(){
+        return reviewService.insertDummyData();
     }
 
 }

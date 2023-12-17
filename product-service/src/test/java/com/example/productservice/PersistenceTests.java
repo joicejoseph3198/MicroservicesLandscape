@@ -33,10 +33,10 @@ class PersistenceTests extends MongoDbTestBase{
                         .model("RK61")
                         .layout(Layout.QWERTY)
                         .keySwitches(Switches.GYELLOW)
-                        .price(4500.00f)
+                        .price(4500.00)
                         .description("Test Product")
                         .dimension("1.5x1.5x2 inches")
-                        .weight(358.6f)
+                        .weight(358.6)
                 .build();
 
         savedProduct = productRepository.save(product);

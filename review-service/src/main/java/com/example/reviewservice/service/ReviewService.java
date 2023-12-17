@@ -1,5 +1,12 @@
 package com.example.reviewservice.service;
 
+import com.example.UtilService.dto.ResponseDTO;
+import com.example.reviewservice.dto.ReviewDTO;
+
+import java.util.List;
+
 public interface ReviewService {
-    String getReviewByProductId(int productId);
+    ResponseDTO<String> createReview(ReviewDTO reviewDTO);
+    ResponseDTO<List<ReviewDTO>> getReviewByProductId(String productId);
+    ResponseDTO<String> insertDummyData();
 }

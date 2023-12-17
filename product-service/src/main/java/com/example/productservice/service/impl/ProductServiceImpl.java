@@ -2,15 +2,22 @@ package com.example.productservice.service.impl;
 
 import com.example.UtilService.dto.ResponseDTO;
 import com.example.productservice.dto.ProductDTO;
+import com.example.productservice.entity.Product;
+import com.example.productservice.enums.*;
 import com.example.productservice.mapper.ProductMapper;
 import com.example.productservice.repository.ProductRepository;
 import com.example.productservice.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
+import net.datafaker.Faker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 @Service
 @Slf4j
@@ -19,11 +26,13 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductMapper productMapper;
     private final ProductRepository productRepository;
+    private final Faker faker;
 
     @Autowired
     public ProductServiceImpl(ProductMapper productMapper, ProductRepository productRepository) {
         this.productMapper = productMapper;
         this.productRepository = productRepository;
+        this.faker = new Faker();
     }
 
     @Override
@@ -75,6 +84,39 @@ public class ProductServiceImpl implements ProductService {
                 });
 
         return responseDTO;
+    }
+
+    @Override
+    @Transactional
+    public ResponseDTO<String> insertDummyData() {
+        ResponseDTO<String> responseDTO = new ResponseDTO<>(Boolean.TRUE,"Data insertion complete.",null);
+        generateDummyReviews();
+        return responseDTO;
+    }
+
+    private void generateDummyReviews(){
+        if(productRepository.findAll().isEmpty()){
+            List<Product> reviewList = IntStream.rangeClosed(1,100)
+                    .mapToObj(i->
+                            new Product(
+                                    String.valueOf(i),
+                                    faker.commerce().promotionCode(),
+                                    faker.commerce().brand(),
+                                    faker.bothify("???###"),
+                                    faker.options().option(Connectivity.class),
+                                    faker.options().option(Switches.class),
+                                    faker.options().option(KeyCaps.class),
+                                    faker.options().option(Layout.class),
+                                    faker.options().option(Category.class),
+                                    faker.lorem().sentence(),
+                                    faker.bothify("#.#x#.#x#.#"),
+                                    faker.random().nextDouble(300,500),
+                                    faker.random().nextDouble(4000,15000),
+                                    faker.internet().url()
+                            ))
+                    .toList();
+            productRepository.saveAll(reviewList);
+        }
     }
 
     /* TODO: 1. Create APIs for deletion, updation and insert dummy data. */

@@ -10,4 +10,5 @@ import java.util.List;
 public interface ReviewRepository extends JpaRepository<Review,Integer> {
     @Transactional(readOnly = true)
     List<Review> findByProductId(String productId);
+    List<Review> deleteByProductId(String productId);
 }

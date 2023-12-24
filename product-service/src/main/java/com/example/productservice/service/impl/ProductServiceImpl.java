@@ -87,6 +87,26 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public ResponseDTO<String> deleteProduct(String productId){
+        ResponseDTO<String> responseDTO =
+                new ResponseDTO<>(Boolean.TRUE, "Request processed successfully.", null);
+        productRepository.findById(productId).ifPresentOrElse(
+                product -> {
+                    LOG.debug("Deleting product (Id: {}).", productId);
+                    productRepository.deleteById(productId);
+                    responseDTO.setData("Deleted product ("+productId+").");
+                },
+                ()->{
+                    LOG.debug("Product not found (Id: {}).", productId);
+                    responseDTO.setStatus(Boolean.FALSE);
+                    responseDTO.setMessage("Request Failed");
+                    responseDTO.setData("Associated product couldn't be found.");
+                }
+        );
+        return responseDTO;
+    }
+
+    @Override
     @Transactional
     public ResponseDTO<String> insertDummyData() {
         ResponseDTO<String> responseDTO = new ResponseDTO<>(Boolean.TRUE,"Data insertion complete.",null);

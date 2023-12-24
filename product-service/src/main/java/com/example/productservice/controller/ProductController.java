@@ -26,6 +26,11 @@ public class ProductController {
     public ResponseDTO<String> createProduct(@RequestBody ProductDTO productDTO){
         return productService.createProduct(productDTO);
     }
+
+    @DeleteMapping(value = "/delete/{productId}")
+    public ResponseDTO<String> deleteProduct(@PathVariable String productId){
+        return productService.deleteProduct(productId);
+    }
     @GetMapping(value = "/generateDummy")
     ResponseDTO<String> generateDummyRecord(){
         return productService.insertDummyData();

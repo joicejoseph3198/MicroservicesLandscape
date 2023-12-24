@@ -26,6 +26,14 @@ public class ReviewController {
     ResponseDTO<List<ReviewDTO>> getReviewByProductId(@PathVariable String id){
         return reviewService.getReviewByProductId(id);
     }
+    @DeleteMapping(value = "/delete/{reviewId}")
+    ResponseDTO<String> deleteReview(@PathVariable Integer reviewId){
+        return reviewService.deleteReview(reviewId);
+    }
+    @DeleteMapping(value = "/deleteAssociated/{productId}")
+    ResponseDTO<List<Integer>> deleteReview(@PathVariable String productId){
+        return reviewService.deleteAssociatedReview(productId);
+    }
     @GetMapping(value = "/generateDummy")
     ResponseDTO<String> generateDummyRecord(){
         return reviewService.insertDummyData();

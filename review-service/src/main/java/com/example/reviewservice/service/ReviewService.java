@@ -8,5 +8,7 @@ import java.util.List;
 public interface ReviewService {
     ResponseDTO<String> createReview(ReviewDTO reviewDTO);
     ResponseDTO<List<ReviewDTO>> getReviewByProductId(String productId);
+    ResponseDTO<String> deleteReview(Integer reviewId);
+    ResponseDTO<List<Integer>> deleteAssociatedReview(String productId);
     ResponseDTO<String> insertDummyData();
 }

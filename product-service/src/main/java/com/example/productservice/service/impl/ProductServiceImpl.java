@@ -23,7 +23,6 @@ import java.util.stream.IntStream;
 @Slf4j
 public class ProductServiceImpl implements ProductService {
     private static final Logger LOG = LoggerFactory.getLogger(ProductServiceImpl.class);
-
     private final ProductMapper productMapper;
     private final ProductRepository productRepository;
     private final Faker faker;

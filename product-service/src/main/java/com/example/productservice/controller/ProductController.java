@@ -4,13 +4,11 @@ import com.example.UtilService.dto.ResponseDTO;
 import com.example.productservice.dto.ProductDTO;
 import com.example.productservice.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/product")
 public class ProductController {
-
     private final ProductService productService;
 
     @Autowired

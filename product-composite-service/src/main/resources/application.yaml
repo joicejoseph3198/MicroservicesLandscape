@@ -8,15 +8,34 @@ app:
   host: localhost
   port: 7003
 
+ spring.cloud.stream:
+  defaultBinder: kafka
+  default.contentType: application/json
+  bindings:
+   productDelete-out-0:
+    destination: productsTopic # topic/exchange name
+    producer:
+     required-groups: auditGroup # this property when used with Kafka, events are retained in separate topics, even after consumers have processed them.
+   reviewDelete-out-0:
+    destination: reviewsTopic
+    producer:
+     required-groups: auditGroup
+
+spring.cloud.stream.kafka.binder:
+ brokers: 127.0.0.1
+ defaultBrokerPort: 9092
+
 logging:
  level:
   root: ERROR
-  org.springframework.web: ERROR
+  org.springframework.web: DEBUG
   com.example: DEBUG
   org.hibernate: ERROR
 
 ---
 spring.config.activate.on-profile: docker
+
+server.port: 8083
 
 app:
  product-service:
@@ -25,6 +44,8 @@ app:
  review-service:
   host: review
   port: 8082
+
+spring.cloud.stream.kafka.binder.brokers: kafka
 
 logging:
  level:

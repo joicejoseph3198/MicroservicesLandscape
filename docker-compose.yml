@@ -25,7 +25,7 @@ services:
     build: ./product-composite-service
     mem_limit: 512M
     ports:
-      - "8080:8080"
+      - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
   mongodb:
@@ -60,6 +60,38 @@ services:
       interval: 5s
       timeout: 2s
       retries: 60
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:7.3.1
+    restart: always
+    mem_limit: 1024m
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_BROKER_ID=1
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    depends_on:
+      - zookeeper
+  zookeeper:
+    container_name: zookeeper
+    image: confluentinc/cp-zookeeper:7.3.1
+    restart: always
+    mem_limit: 512m
+    ports:
+      - "2181:2181"
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8085:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      DYNAMIC_CONFIG_ENABLED: 'true'
 volumes:
   sqldata:
   mongodata:

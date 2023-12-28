@@ -12,10 +12,29 @@ spring:
     hibernate:
       ddl-auto: update
 
+spring.cloud.stream:
+  defaultBinder: kafka
+  default.contentType: application/json
+  bindings.deleteMessageProcessor-in-0:
+    destination: reviewsTopic
+    group: reviewsGroup
+    consumer:
+      maxAttempts: 3
+      backOffInitialInterval: 500
+      backOffMaxInterval: 1000
+      backOffMultiplier: 2.0
+
+spring.cloud.stream.kafka.bindings.deleteMessageProcessor-in-0.consumer:
+  enableDlq: true
+
+spring.cloud.stream.kafka.binder:
+  brokers: 127.0.0.1
+  defaultBrokerPort: 9092
+
 logging:
   level:
     root: ERROR
-    org.springframework.web: ERROR
+    org.springframework.web: DEBUG
     com.example: DEBUG
     org.hibernate: ERROR
 
@@ -42,3 +61,5 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+spring.cloud.stream.kafka.binder.brokers: kafka

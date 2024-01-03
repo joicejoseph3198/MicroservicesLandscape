@@ -1,4 +1,5 @@
 server.port: 7000
+management.endpoint.health.show-details: "ALWAYS"
 
 app:
  product-service:
@@ -8,22 +9,22 @@ app:
   host: localhost
   port: 7003
 
- spring.cloud.stream:
+spring.cloud.stream:
   defaultBinder: kafka
   default.contentType: application/json
   bindings:
-   productDelete-out-0:
-    destination: productsTopic # topic/exchange name
-    producer:
-     required-groups: auditGroup # this property when used with Kafka, events are retained in separate topics, even after consumers have processed them.
-   reviewDelete-out-0:
-    destination: reviewsTopic
-    producer:
-     required-groups: auditGroup
+    productDelete-out-0:
+      destination: productTopic # topic/exchange name
+      producer:
+        required-groups: auditGroup # this property when used with Kafka, events are retained in separate topics, even after consumers have processed them.
+    reviewDelete-out-0:
+      destination: reviewTopic
+      producer:
+        required-groups: auditGroup
 
 spring.cloud.stream.kafka.binder:
- brokers: 127.0.0.1
- defaultBrokerPort: 9092
+  brokers: 127.0.0.1
+  defaultBrokerPort: 9092
 
 logging:
  level:

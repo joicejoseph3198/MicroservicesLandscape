@@ -1,5 +1,6 @@
 server:
   port: 7003
+management.endpoint.health.show-details: "ALWAYS"
 
 spring:
   datasource:
@@ -16,7 +17,7 @@ spring.cloud.stream:
   defaultBinder: kafka
   default.contentType: application/json
   bindings.deleteMessageProcessor-in-0:
-    destination: reviewsTopic
+    destination: reviewTopic
     group: reviewsGroup
     consumer:
       maxAttempts: 3

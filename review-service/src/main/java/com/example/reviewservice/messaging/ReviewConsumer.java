@@ -22,7 +22,7 @@ public class ReviewConsumer {
     @Bean
     public Consumer<Event<String,Object>> deleteMessageProcessor() {
         return event -> {
-            LOG.info("Processing event: {}", event);
+            LOG.info("Processing event: {}", event.toString());
             String productId = event.getKey();
             reviewService.deleteAssociatedReview(productId);
             LOG.info("Message processing completed.");

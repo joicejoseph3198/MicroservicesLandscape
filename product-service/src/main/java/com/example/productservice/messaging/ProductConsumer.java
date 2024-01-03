@@ -23,11 +23,11 @@ public class ProductConsumer {
     @Bean
     public Consumer<Event<String,Object>> deleteMessageProcessor() {
         return event -> {
-            LOG.info("Processing event: {}", event);
+            LOG.info("Processing event: {}", event.toString());
             String productId = event.getKey();
             ResponseDTO<String> response = productService.deleteProduct(productId);
             LOG.debug(response.getData());
-            LOG.info("Message processing completed.");
+            LOG.info("Event processing completed.");
         };
     }
 }

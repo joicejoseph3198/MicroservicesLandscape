@@ -1,4 +1,5 @@
 server.port: 7001
+management.endpoint.health.show-details: "ALWAYS"
 spring:
   data:
     mongodb:
@@ -17,7 +18,7 @@ spring.cloud.stream:
   defaultBinder: kafka
   default.contentType: application/json
   bindings.deleteMessageProcessor-in-0:
-    destination: productsTopic
+    destination: productTopic
     group: productsGroup
     consumer:
       maxAttempts: 3

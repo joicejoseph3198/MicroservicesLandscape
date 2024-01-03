@@ -11,11 +11,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.Map;
 import java.util.Objects;
 @Component
 public class ProductCompositeIntegration {
@@ -30,6 +32,9 @@ public class ProductCompositeIntegration {
     private final String productServiceUrl;
     private final String reviewServiceUrl;
 
+    private final String reviewHealthUrl;
+    private final String productHealthUrl;
+
     @Autowired
     public ProductCompositeIntegration(
             @Lazy RestTemplate restTemplate,
@@ -40,6 +45,8 @@ public class ProductCompositeIntegration {
             @Value("${app.review-service.port}") int reviewServicePort) {
         this.restTemplate = restTemplate;
         this.mapper = mapper;
+        productHealthUrl = "http://" + productServiceHost + ":" + productServicePort + "/actuator/health";
+        reviewHealthUrl = "http://" + reviewServiceHost + ":" + reviewServicePort + "/actuator/health";
         productServiceUrl = "http://" + productServiceHost + ":" + productServicePort + "/product/";
         reviewServiceUrl = "http://" + reviewServiceHost + ":" + reviewServicePort + "/review/";
     }
@@ -50,7 +57,7 @@ public class ProductCompositeIntegration {
             return ioex.getMessage();
         }
     }
-    String getProduct(int productId){
+    public String getProduct(int productId){
         try {
             String url = productServiceUrl + productId;
             LOG.debug("Will call getProduct API on URL: {}", url);
@@ -70,7 +77,7 @@ public class ProductCompositeIntegration {
             }
         }
     }
-    String getReviews(int productId) {
+    public String getReviews(int productId) {
         try {
             String url = reviewServiceUrl + productId;
 
@@ -84,5 +91,16 @@ public class ProductCompositeIntegration {
             LOG.warn("Got an exception while requesting reviews, return zero reviews: {}", ex.getMessage());
             throw ex;
         }
+    }
+
+    public String getReviewHealth(){
+        ResponseEntity<Map> response = restTemplate.getForEntity(reviewHealthUrl, Map.class);
+        Map<String, Object> respMap = response.getBody();
+        return (String) respMap.get("status");
+    }
+    public String getProductHealth(){
+        ResponseEntity<Map> response = restTemplate.getForEntity(productHealthUrl, Map.class);
+        Map<String, Object> respMap = response.getBody();
+        return (String) respMap.get("status");
     }
 }

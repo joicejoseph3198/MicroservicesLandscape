@@ -20,7 +20,7 @@ services:
       - mysql
     ports:
       - "8082:8082"
-  product-composite:
+  composite:
     container_name: composite
     build: ./product-composite-service
     mem_limit: 512M
@@ -56,7 +56,7 @@ services:
       - MYSQL_PASSWORD=password
       - MYSQL_DATABASE=reviewdb
     healthcheck:
-      test: "mysql -uroot -p$$MYSQL_ROOT_PASSWORD  -e 'SHOW DATABASES'"
+      test: "mysql -u root -p$$MYSQL_ROOT_PASSWORD  -e 'SHOW DATABASES'"
       interval: 5s
       timeout: 2s
       retries: 60
@@ -86,12 +86,19 @@ services:
   kafka-ui:
     container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest
+    mem_limit: 512m
     ports:
       - "8085:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       DYNAMIC_CONFIG_ENABLED: 'true'
+  discovery:
+    container_name: discovery
+    build: ./discovery-service
+    mem_limit: 512m
+    ports:
+    - "8761:8761"
 volumes:
   sqldata:
   mongodata:

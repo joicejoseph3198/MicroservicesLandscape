@@ -1,5 +1,6 @@
 server.port: 7001
 management.endpoint.health.show-details: "ALWAYS"
+
 spring:
   data:
     mongodb:
@@ -33,17 +34,26 @@ spring.cloud.stream.kafka.binder:
   brokers: 127.0.0.1
   defaultBrokerPort: 9092
 
+spring.application.name: product
+
+app.eureka-server: localhost
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${app.eureka-server}:8761/eureka/
+    initialInstanceInfoReplicationIntervalSeconds: 5
+    registryFetchIntervalSeconds: 5
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 5
+
 ---
 spring.config.activate.on-profile: docker
 
 server.port: 8081
 
-logging:
-  level:
-    root: ERROR
-    org.springframework.web: ERROR
-    com.example: DEBUG
-    org.hibernate: ERROR
+eureka.client.serviceUrl.defaultZone: http://discovery:8761/eureka/
 
 spring:
   data:

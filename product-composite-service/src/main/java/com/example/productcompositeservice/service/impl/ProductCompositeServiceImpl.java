@@ -14,8 +14,6 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
     public ProductCompositeServiceImpl(ProductCompositeIntegration integration) {
         this.integration = integration;
     }
-
-    /* TODO: Make this service non-blocking */
     @Override
     public String getProductAggregate(int productId) {
         String resultantProduct = integration.getProduct(productId);

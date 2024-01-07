@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
@@ -35,20 +34,19 @@ public class ProductCompositeIntegration {
     private final String reviewHealthUrl;
     private final String productHealthUrl;
 
+    private static final String PRODUCT_SERVICE_URL = "http://product";
+    private static final String REVIEW_SERVICE_URL = "http://review";
+
     @Autowired
     public ProductCompositeIntegration(
             @Lazy RestTemplate restTemplate,
-            ObjectMapper mapper,
-            @Value("${app.product-service.host}") String productServiceHost,
-            @Value("${app.product-service.port}") int productServicePort,
-            @Value("${app.review-service.host}") String reviewServiceHost,
-            @Value("${app.review-service.port}") int reviewServicePort) {
+            ObjectMapper mapper) {
         this.restTemplate = restTemplate;
         this.mapper = mapper;
-        productHealthUrl = "http://" + productServiceHost + ":" + productServicePort + "/actuator/health";
-        reviewHealthUrl = "http://" + reviewServiceHost + ":" + reviewServicePort + "/actuator/health";
-        productServiceUrl = "http://" + productServiceHost + ":" + productServicePort + "/product/";
-        reviewServiceUrl = "http://" + reviewServiceHost + ":" + reviewServicePort + "/review/";
+        productHealthUrl = PRODUCT_SERVICE_URL + "/actuator/health";
+        reviewHealthUrl = REVIEW_SERVICE_URL + "/actuator/health";
+        productServiceUrl = PRODUCT_SERVICE_URL;
+        reviewServiceUrl = REVIEW_SERVICE_URL;
     }
     private String getErrorMessage(HttpClientErrorException ex) {
         try {
@@ -59,7 +57,7 @@ public class ProductCompositeIntegration {
     }
     public String getProduct(int productId){
         try {
-            String url = productServiceUrl + productId;
+            String url = productServiceUrl +"/product/" + productId;
             LOG.debug("Will call getProduct API on URL: {}", url);
             String product = restTemplate.getForObject(url,String.class);
             LOG.debug("Found a product: {}", product);

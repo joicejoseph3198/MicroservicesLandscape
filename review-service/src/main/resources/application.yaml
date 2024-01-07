@@ -32,6 +32,20 @@ spring.cloud.stream.kafka.binder:
   brokers: 127.0.0.1
   defaultBrokerPort: 9092
 
+spring.application.name: review
+
+app.eureka-server: localhost
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${app.eureka-server}:8761/eureka/
+    initialInstanceInfoReplicationIntervalSeconds: 5
+    registryFetchIntervalSeconds: 5
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 5
+
 logging:
   level:
     root: ERROR
@@ -43,6 +57,8 @@ logging:
 spring.config.activate.on-profile: docker
 
 server.port: 8082
+
+eureka.client.serviceUrl.defaultZone: http://discovery:8761/eureka/
 
 logging:
   level:

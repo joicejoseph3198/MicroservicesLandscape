@@ -43,6 +43,7 @@ eureka:
     initialInstanceInfoReplicationIntervalSeconds: 5
     registryFetchIntervalSeconds: 5
   instance:
+    preferIpAddress: true
     leaseRenewalIntervalInSeconds: 5
     leaseExpirationDurationInSeconds: 5
 
@@ -58,7 +59,7 @@ spring.config.activate.on-profile: docker
 
 server.port: 8082
 
-eureka.client.serviceUrl.defaultZone: http://discovery:8761/eureka/
+app.eureka-server: discovery
 
 logging:
   level:

@@ -28,6 +28,7 @@ eureka:
     initialInstanceInfoReplicationIntervalSeconds: 5
     registryFetchIntervalSeconds: 5
   instance:
+    preferIpAddress: true
     leaseRenewalIntervalInSeconds: 5
     leaseExpirationDurationInSeconds: 5
 
@@ -45,4 +46,5 @@ server.port: 8083
 
 spring.cloud.stream.kafka.binder.brokers: kafka
 
-eureka.client.serviceUrl.defaultZone: http://discovery:8761/eureka/
+app.eureka-server: discovery
+

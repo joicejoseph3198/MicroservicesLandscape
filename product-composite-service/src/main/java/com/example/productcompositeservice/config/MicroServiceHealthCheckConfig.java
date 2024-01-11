@@ -17,6 +17,7 @@ public class MicroServiceHealthCheckConfig implements HealthIndicator {
         this.integration = integration;
     }
 
+    // Rewriting this in gateway service
     @Override
     public Health health() {
         final Map<String, String> registry = new LinkedHashMap<>();

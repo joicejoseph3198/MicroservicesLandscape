@@ -8,6 +8,7 @@ logging:
     com.example: DEBUG
     org.hibernate: ERROR
 
+spring.application.name: discovery
 # standard configuration for a standalone Eureka server.
 eureka:
   instance:

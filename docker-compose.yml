@@ -8,6 +8,7 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       - mongodb
+      - discovery
     ports:
       - "8081:8081"
   review:
@@ -18,12 +19,15 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       - mysql
+      - discovery
     ports:
       - "8082:8082"
   composite:
     container_name: composite
     build: ./product-composite-service
     mem_limit: 512M
+    depends_on:
+      - discovery
     ports:
       - "8083:8083"
     environment:
@@ -99,6 +103,16 @@ services:
     mem_limit: 512m
     ports:
     - "8761:8761"
+  gateway:
+    container_name: gateway
+    environment:
+    - SPRING_PROFILES_ACTIVE=docker
+    build: ./gateway-service
+    mem_limit: 512m
+    depends_on:
+      - discovery
+    ports:
+      - "8888:8888"
 volumes:
   sqldata:
   mongodata:

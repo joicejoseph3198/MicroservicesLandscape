@@ -1,6 +1,10 @@
 server.port: 7001
 management.endpoint.health.show-details: "ALWAYS"
 
+app:
+  eureka-username: admin
+  eureka-password: admin
+
 spring:
   data:
     mongodb:
@@ -41,7 +45,7 @@ app.eureka-server: localhost
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://${app.eureka-server}:8761/eureka/
+      defaultZone: http://${app.eureka-username}:${app.eureka-password}@${app.eureka-server}:8761/eureka/
     initialInstanceInfoReplicationIntervalSeconds: 5
     registryFetchIntervalSeconds: 5
   instance:

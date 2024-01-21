@@ -27,6 +27,7 @@ public class HealthCheckConfig implements HealthIndicator {
         registry.put("review", getHealth("http://review"));
         registry.put("product", getHealth("http://product"));
         registry.put("composite", getHealth("http://composite"));
+        registry.put("auth-server",getHealth("http://auth-server"));
 
         if (registry.containsValue("DOWN")){
             return Health.down().withDetails(registry).build();

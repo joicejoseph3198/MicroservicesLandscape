@@ -1,4 +1,5 @@
 version: '3.9'
+
 services:
   product:
     container_name: product
@@ -11,6 +12,7 @@ services:
       - discovery
     ports:
       - "8081:8081"
+
   review:
     container_name: review
     build: ./review-service
@@ -22,6 +24,7 @@ services:
       - discovery
     ports:
       - "8082:8082"
+
   composite:
     container_name: composite
     build: ./product-composite-service
@@ -32,6 +35,7 @@ services:
       - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+
   mongodb:
     container_name: mongo
     image: mongo:6.0.4
@@ -46,6 +50,7 @@ services:
       interval: 5s
       timeout: 2s
       retries: 60
+
   mysql:
     container_name: mysql
     image: mysql:8.0.32
@@ -64,6 +69,7 @@ services:
       interval: 5s
       timeout: 2s
       retries: 60
+
   kafka:
     container_name: kafka
     image: confluentinc/cp-kafka:7.3.1
@@ -78,6 +84,7 @@ services:
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
     depends_on:
       - zookeeper
+
   zookeeper:
     container_name: zookeeper
     image: confluentinc/cp-zookeeper:7.3.1
@@ -87,6 +94,7 @@ services:
       - "2181:2181"
     environment:
       - ZOOKEEPER_CLIENT_PORT=2181
+
   kafka-ui:
     container_name: kafka-ui
     image: provectuslabs/kafka-ui:latest
@@ -97,22 +105,42 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       DYNAMIC_CONFIG_ENABLED: 'true'
+
   discovery:
     container_name: discovery
     build: ./discovery-service
     mem_limit: 512m
     ports:
     - "8761:8761"
+
   gateway:
     container_name: gateway
-    environment:
-    - SPRING_PROFILES_ACTIVE=docker
     build: ./gateway-service
     mem_limit: 512m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      auth-server:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+
+  auth-server:
+    container_name: auth-server
+    build: ./authorization-server
+    mem_limit: 512M
+    ports:
+      - "9999:9999"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       - discovery
-    ports:
-      - "8888:8888"
+    healthcheck:
+      test: [ "CMD", "curl", "-fs", "http://localhost:9999/actuator/health" ]
+      interval: 5s
+      timeout: 2s
+      retries: 60
+
 volumes:
   sqldata:
   mongodata:

@@ -1,6 +1,10 @@
 server:
   port: 8761
 
+app:
+  eureka-username: admin
+  eureka-password: admin
+
 logging:
   level:
     root: ERROR
@@ -12,6 +16,7 @@ spring.application.name: discovery
 # standard configuration for a standalone Eureka server.
 eureka:
   instance:
+    securePortEnabled: true
     hostname: localhost
   client:
     registerWithEureka: false

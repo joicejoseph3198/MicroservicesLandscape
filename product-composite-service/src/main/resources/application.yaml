@@ -43,17 +43,19 @@ logging:
     com.example: DEBUG
     org.hibernate: ERROR
 
-swagger-ui:
-  oauth2-redirect-url: /swagger-ui/oauth2-redirect.html
-  oauth:
-    clientId: writer
-    clientSecret: secret-writer
-    useBasicAuthenticationWithAccessCodeGrant: true
-  oAuthFlow:
-    authorizationUrl: https://localhost:8443/oauth2/authorize
-    tokenUrl: https://localhost:8443/oauth2/token
+#swagger-ui:
+#  oauth2-redirect-url: /swagger-ui/oauth2-redirect.html
+#  oauth:
+#    clientId: writer
+#    clientSecret: secret-writer
+#    useBasicAuthenticationWithAccessCodeGrant: true
+#  oAuthFlow:
+#    authorizationUrl: https://localhost:8443/oauth2/authorize
+#    tokenUrl: https://localhost:8443/oauth2/token
 
-spring.security.oauth2.resourceserver.jwt.issuer-uri: http://${app.auth-server}:9999
+
+# curl https://${TENANT}/.well-known/openid-configuration -s | jq
+spring.security.oauth2.resourceserver.jwt.issuer-uri: https://${TENANT}/
 
 ---
 spring.config.activate.on-profile: docker

@@ -1,15 +1,9 @@
 package com.example.productcompositeservice.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 import java.util.List;
-
-@Data
-public class ProductAggregate {
-    private final int productId;
-    private final String name;
-    private final int weight;
-    private final List<RecommendationSummary> recommendations;
-    private final List<ReviewSummary> reviews;
-    private final ServiceAddresses serviceAddresses;
+public record ProductAggregate(ProductDTO productDTO, List<ReviewDTO> reviewDTOS) {
 }

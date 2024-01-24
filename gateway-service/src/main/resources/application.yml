@@ -1,17 +1,13 @@
 server:
-  port: 8080 # The default ports are 8080 for HTTP and 8443 for HTTPS.
+  port: 8443 # The default ports are 8080 for HTTP and 8443 for HTTPS.
 
 # spring started web and spring cloud gateway are not compatible
 
 app.auth-server: localhost
 
-spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://${app.auth-server}:9999
-          jwk-set-uri: http://${app.auth-server}:9999/oauth2/jwks
+# https://${TENANT}/
+# curl https://${TENANT}/.well-known/openid-configuration -s | jq
+spring.security.oauth2.resourceserver.jwt.issuer-uri: # https://${TENANT}/
 
 # credentials to access discovery-service
 app:
@@ -28,7 +24,7 @@ eureka:
     initialInstanceInfoReplicationIntervalSeconds: 5
     registryFetchIntervalSeconds: 5
   instance:
-    preferIpAddress: true
+#    preferIpAddress: true
     leaseRenewalIntervalInSeconds: 5
     leaseExpirationDurationInSeconds: 5
 
@@ -78,7 +74,6 @@ spring.cloud.gateway.routes:
 
 management.endpoint.gateway.enabled: true
 management.endpoint.health.show-details: "ALWAYS"
-management.endpoints.web.exposure.include: "*"
 
 logging:
   level:
@@ -88,12 +83,11 @@ logging:
     org.springframework.web.server.adapter.HttpWebHandlerAdapter: TRACE
 
 # to configure gateway to use the certificate and HTTPS
-#server.ssl:
-#  enabled: true
-#  key-store-type: PKCS12 #  format for storing or transporting a user's private keys, certificates
-#  key-store: classpath:keystore/edge.p12
-#  key-store-password: password
-#  key-alias: localhost
+server.ssl:
+  key-store-type: PKCS12 #  format for storing or transporting a user's private keys, certificates
+  key-store: classpath:keystore/edge.p12
+  key-store-password: password
+  key-alias: localhost
 
 ---
 spring.config.activate.on-profile: docker

@@ -123,23 +123,23 @@ services:
       auth-server:
         condition: service_healthy
     ports:
-      - "8080:8080"
+      - "8443:8443"
 
-  auth-server:
-    container_name: auth-server
-    build: ./authorization-server
-    mem_limit: 512M
-    ports:
-      - "9999:9999"
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    depends_on:
-      - discovery
-    healthcheck:
-      test: [ "CMD", "curl", "-fs", "http://localhost:9999/actuator/health" ]
-      interval: 5s
-      timeout: 2s
-      retries: 60
+#  auth-server:
+#    container_name: auth-server
+#    build: ./authorization-server
+#    mem_limit: 512M
+#    ports:
+#      - "9999:9999"
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#    depends_on:
+#      - discovery
+#    healthcheck:
+#      test: [ "CMD", "curl", "-fs", "http://localhost:9999/actuator/health" ]
+#      interval: 5s
+#      timeout: 2s
+#      retries: 60
 
 volumes:
   sqldata:

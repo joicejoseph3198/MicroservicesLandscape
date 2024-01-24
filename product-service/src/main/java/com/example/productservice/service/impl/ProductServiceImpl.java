@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.IntStream;
 
 @Service
@@ -35,21 +36,22 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseDTO<ProductDTO> getProductBySkuCode(String skuCode) {
+    public ResponseDTO<ProductDTO> getProductById(String productId) {
+        LOG.info(">>> getProductById");
         ResponseDTO<ProductDTO> responseDTO =
                 new ResponseDTO<>(Boolean.TRUE, "Request processed successfully.", null);
-        productRepository.findBySkuCode(skuCode)
+        productRepository.findById(productId)
                 .ifPresentOrElse(product -> {
-                    LOG.debug("Fetching product({}).", skuCode);
+                    LOG.debug("Fetching product({}).", productId);
                     ProductDTO productDTO = productMapper.toDto(product);
                     responseDTO.setData(productDTO);
                 }, () -> {
-                    LOG.debug("Associated product({}) not found.", skuCode);
+                    LOG.debug("Associated product({}) not found.", productId);
                     responseDTO.setStatus(Boolean.FALSE);
-                    responseDTO.setMessage("No product with the associated skuCode present.");
+                    responseDTO.setMessage("No product with the associated productId present.");
                 });
+        LOG.info("<<< getProductById");
         return responseDTO;
-
     }
 
     @Override
@@ -119,7 +121,7 @@ public class ProductServiceImpl implements ProductService {
                     .mapToObj(i->
                             new Product(
                                     String.valueOf(i),
-                                    faker.commerce().promotionCode(),
+                                    UUID.randomUUID().toString(),
                                     faker.commerce().brand(),
                                     faker.bothify("???###"),
                                     faker.options().option(Connectivity.class),

@@ -15,9 +15,9 @@ public class ProductController {
     public ProductController(ProductService productService){
         this.productService = productService;
     }
-    @GetMapping(value = "/{skuCode}")
-    public ResponseDTO<ProductDTO> getProductBySkuCode(@PathVariable String skuCode){
-        return productService.getProductBySkuCode(skuCode);
+    @GetMapping(value = "/{id}")
+    public ResponseDTO<ProductDTO> getProductById(@PathVariable String id){
+        return productService.getProductById(id);
     }
 
     @PostMapping(value = "/create")

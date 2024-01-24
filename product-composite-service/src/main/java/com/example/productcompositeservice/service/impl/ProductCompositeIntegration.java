@@ -1,14 +1,22 @@
 package com.example.productcompositeservice.service.impl;
 
 import com.example.UtilService.HttpErrorInfo;
+import com.example.UtilService.dto.ResponseDTO;
 import com.example.UtilService.exception.InvalidInputException;
 import com.example.UtilService.exception.NotFoundException;
+import com.example.productcompositeservice.dto.ProductDTO;
+import com.example.productcompositeservice.dto.ReviewDTO;
+import com.example.productcompositeservice.feign.ProductClient;
+import com.example.productcompositeservice.feign.ReviewClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -16,37 +24,34 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+
 @Component
 public class ProductCompositeIntegration {
-    @Bean
-    RestTemplate restTemplate(){
-        return new RestTemplate();
-    }
-
     private static final Logger LOG = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
     private final RestTemplate restTemplate;
+    private final ProductClient productClient;
+    private final ReviewClient reviewClient;
     private final ObjectMapper mapper;
-    private final String productServiceUrl;
-    private final String reviewServiceUrl;
-
     private final String reviewHealthUrl;
     private final String productHealthUrl;
-
     private static final String PRODUCT_SERVICE_URL = "http://product";
     private static final String REVIEW_SERVICE_URL = "http://review";
 
     @Autowired
-    public ProductCompositeIntegration(
-            @Lazy RestTemplate restTemplate,
-            ObjectMapper mapper) {
+    public ProductCompositeIntegration(ObjectMapper mapper,
+                                       ReviewClient reviewClient,
+                                       ProductClient productClient,
+                                       RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
+        this.reviewClient = reviewClient;
+        this.productClient = productClient;
         this.mapper = mapper;
         productHealthUrl = PRODUCT_SERVICE_URL + "/actuator/health";
         reviewHealthUrl = REVIEW_SERVICE_URL + "/actuator/health";
-        productServiceUrl = PRODUCT_SERVICE_URL;
-        reviewServiceUrl = REVIEW_SERVICE_URL;
     }
     private String getErrorMessage(HttpClientErrorException ex) {
         try {
@@ -55,15 +60,13 @@ public class ProductCompositeIntegration {
             return ioex.getMessage();
         }
     }
-    public String getProduct(int productId){
+    public ResponseDTO<ProductDTO> getProduct(String productId){
         try {
-            String url = productServiceUrl +"/product/" + productId;
-            LOG.debug("Will call getProduct API on URL: {}", url);
-            String product = restTemplate.getForObject(url,String.class);
-            LOG.debug("Found a product: {}", product);
-            return product;
+            LOG.debug("Feign call: getProductById({})",productId);
+            ResponseDTO<ProductDTO> response = productClient.getProductById(productId);
+            LOG.debug("Found associated product for Id: ({})", productId);
+            return response;
         } catch (HttpClientErrorException ex) {
-
             switch (Objects.requireNonNull(HttpStatus.resolve(ex.getStatusCode().value()))) {
                 case NOT_FOUND -> throw new NotFoundException(getErrorMessage(ex));
                 case UNPROCESSABLE_ENTITY -> throw new InvalidInputException(getErrorMessage(ex));
@@ -75,16 +78,12 @@ public class ProductCompositeIntegration {
             }
         }
     }
-    public String getReviews(int productId) {
+    public ResponseDTO<List<ReviewDTO>> getReviews(String productId) {
         try {
-            String url = reviewServiceUrl + productId;
-
-            LOG.debug("Will call getReviews API on URL: {}", url);
-            String reviews = restTemplate.getForObject(url,String.class);
-
-            LOG.debug("Found {} reviews for a product: {}", reviews, productId);
-            return reviews;
-
+            LOG.debug("Feign Call: getReviewByProductId({})",productId);
+            ResponseDTO<List<ReviewDTO>> response = reviewClient.getReviewByProductId(productId);
+            LOG.debug("Found reviews for product Id: ({})", productId);
+            return response;
         } catch (Exception ex) {
             LOG.warn("Got an exception while requesting reviews, return zero reviews: {}", ex.getMessage());
             throw ex;

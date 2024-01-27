@@ -1,39 +1,18 @@
-server.port:
-  9999
+spring.config.import: "optional:configserver:"
 
-spring.application.name: auth-server
-
-app:
-  eureka-username: admin
-  eureka-password: admin
-  eureka-server: localhost
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: "http://${app.eureka-username}:${app.eureka-password}@${app.eureka-server}:8761/eureka/"
-    initialInstanceInfoReplicationIntervalSeconds: 5
-    registryFetchIntervalSeconds: 5
-  instance:
-    preferIpAddress: true
-    leaseRenewalIntervalInSeconds: 5
-    leaseExpirationDurationInSeconds: 5
-
-management.endpoint.health.show-details: "ALWAYS"
-management.endpoints.web.exposure.include: "*"
-
-logging:
-  level:
-    root: ERROR
-    org.springframework.web: ERROR
-    com.example: DEBUG
-    org.hibernate: ERROR
+spring:
+  application.name: auth-server
+  cloud.config:
+    failFast: true
+    retry:
+      initialInterval: 3000
+      multiplier: 1.3
+      maxInterval: 10000
+      maxAttempts: 20
+    uri: http://${CONFIG_SERVER_USR}:${CONFIG_SERVER_PWD}@localhost:8888
 
 ---
-spring.config.activate.on-profile: docker
-
-app.eureka-server: discovery
-
-
-
-
+spring:
+  profiles:
+    active: docker
+spring.cloud.config.uri: http://${CONFIG_SERVER_USR}:${CONFIG_SERVER_PWD}@config-server:8888

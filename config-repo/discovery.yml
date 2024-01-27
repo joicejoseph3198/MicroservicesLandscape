@@ -1,0 +1,31 @@
+server:
+  port: 8761
+
+app:
+  eureka-username: admin
+  eureka-password: admin
+
+logging:
+  level:
+    root: ERROR
+    org.springframework.web: ERROR
+    com.example: DEBUG
+    org.hibernate: ERROR
+
+spring.application.name: discovery
+# standard configuration for a standalone Eureka server.
+eureka:
+  instance:
+    securePortEnabled: true
+    hostname: localhost
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  #used to minimize the startup time.
+  server:
+    waitTimeInMsWhenSyncEmpty: 0
+    response-cache-update-interval-ms: 5000
+
+management.endpoints.web.exposure.include: "*"

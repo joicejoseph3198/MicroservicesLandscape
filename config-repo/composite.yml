@@ -55,7 +55,7 @@ logging:
 
 
 # curl https://${TENANT}/.well-known/openid-configuration -s | jq
-spring.security.oauth2.resourceserver.jwt.issuer-uri: https://${TENANT}/
+spring.security.oauth2.resourceserver.jwt.issuer-uri: http://${app.auth-server}:9999
 
 ---
 spring.config.activate.on-profile: docker

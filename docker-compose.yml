@@ -7,7 +7,10 @@ services:
     mem_limit: 512M
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
     depends_on:
+      - config-server
       - mongodb
       - discovery
     ports:
@@ -19,7 +22,10 @@ services:
     mem_limit: 512M
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
     depends_on:
+      - config-server
       - mysql
       - discovery
     ports:
@@ -30,11 +36,14 @@ services:
     build: ./product-composite-service
     mem_limit: 512M
     depends_on:
+      - config-server
       - discovery
     ports:
       - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
 
   mongodb:
     container_name: mongo
@@ -106,10 +115,35 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       DYNAMIC_CONFIG_ENABLED: 'true'
 
+  auth-server:
+    container_name: auth-server
+    build: ./authorization-server
+    mem_limit: 512M
+    ports:
+      - "9999:9999"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
+    depends_on:
+      - config-server
+      - discovery
+    healthcheck:
+      test: [ "CMD", "curl", "-fs", "http://localhost:9999/actuator/health" ]
+      interval: 5s
+      timeout: 2s
+      retries: 60
+
   discovery:
     container_name: discovery
     build: ./discovery-service
+    depends_on:
+      - config-server
     mem_limit: 512m
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
     ports:
     - "8761:8761"
 
@@ -117,29 +151,32 @@ services:
     container_name: gateway
     build: ./gateway-service
     mem_limit: 512m
+    depends_on:
+      - config-server
+      - auth-server
+      - discovery
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-    depends_on:
-      auth-server:
-        condition: service_healthy
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
     ports:
       - "8443:8443"
 
-#  auth-server:
-#    container_name: auth-server
-#    build: ./authorization-server
-#    mem_limit: 512M
-#    ports:
-#      - "9999:9999"
-#    environment:
-#      - SPRING_PROFILES_ACTIVE=docker
-#    depends_on:
-#      - discovery
-#    healthcheck:
-#      test: [ "CMD", "curl", "-fs", "http://localhost:9999/actuator/health" ]
-#      interval: 5s
-#      timeout: 2s
-#      retries: 60
+  config-server:
+    container_name: config-server
+    build: ./config-server
+    mem_limit: 512m
+    environment:
+      # native, is added to signal to the config server that the config repository is
+      # based on local files
+      - SPRING_PROFILES_ACTIVE=docker,native
+      - ENCRYPT_KEY=${CONFIG_SERVER_ENCRYPT_KEY}
+      - SPRING_SECURITY_USER_NAME=${CONFIG_SERVER_USR}
+      - SPRING_SECURITY_USER_PASSWORD=${CONFIG_SERVER_PWD}
+    volumes:
+      - $PWD/config-repo:/config-repo
+    ports:
+      - "8888:8888"
 
 volumes:
   sqldata:

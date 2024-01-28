@@ -9,25 +9,24 @@ import com.example.productcompositeservice.dto.ReviewDTO;
 import com.example.productcompositeservice.feign.ProductClient;
 import com.example.productcompositeservice.feign.ReviewClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.FeignException;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cloud.client.loadbalancer.LoadBalanced;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 @Component
 public class ProductCompositeIntegration {
@@ -60,6 +59,10 @@ public class ProductCompositeIntegration {
             return ioex.getMessage();
         }
     }
+
+    @Retry(name = "product")
+//    @TimeLimiter(name = "product")
+    @CircuitBreaker(name ="product", fallbackMethod = "getProductFallBackValue")
     public ResponseDTO<ProductDTO> getProduct(String productId){
         try {
             LOG.debug("Feign call: getProductById({})",productId);
@@ -78,6 +81,29 @@ public class ProductCompositeIntegration {
             }
         }
     }
+
+    /*
+    * method must follow the signature of the method the circuit breaker is applied for and also
+    * have an extra last argument used for passing the exception that triggered the circuit breaker.
+    *
+    * If a significant percentage of the calls are failing, the circuit breaker will switch to the OPEN state.
+    * There is a wait duration that you can configure, then it will switch to HALF_OPEN state.
+    * Circuit breaker will decide whether the circuit will be opened or closed based on the configurable number of calls
+    * after the circuit has transitioned to the half-open state.You can configure what percentage of requests you want
+    * to send successfully to the dependant service to move to the CLOSED state again. If it fails, it will move back
+    * to the OPEN state again.
+     */
+    private ResponseDTO<ProductDTO> getProductFallBackValue(String productId, CallNotPermittedException ex){
+        LOG.info("[FALLBACK METHOD]");
+        // The fallback logic can look up information from alternative sources, for example, an internal cache
+        if(productId.equals("101")){
+            throw new NotFoundException("Product (Id: 101) couldn't be found in the internal cache.");
+        }
+        return new ResponseDTO<ProductDTO>(Boolean.TRUE,
+                "We seem to have encountered some issue. Please try again after sometime",
+                null);
+    }
+
     public ResponseDTO<List<ReviewDTO>> getReviews(String productId) {
         try {
             LOG.debug("Feign Call: getReviewByProductId({})",productId);

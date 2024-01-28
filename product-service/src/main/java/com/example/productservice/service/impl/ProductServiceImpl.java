@@ -17,7 +17,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
+import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
 
 @Service
@@ -27,6 +29,9 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final ProductRepository productRepository;
     private final Faker faker;
+
+    // Used for testing resiliency
+    private final static int FAULT_PERCENT = 50;
 
     @Autowired
     public ProductServiceImpl(ProductMapper productMapper, ProductRepository productRepository) {
@@ -38,6 +43,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ResponseDTO<ProductDTO> getProductById(String productId) {
         LOG.info(">>> getProductById");
+        // For testing resiliency
+        int randomThreshold = RandomGenerator.getDefault().nextInt(1, 100);
+        if (FAULT_PERCENT < randomThreshold) {
+            LOG.info("Bad luck, an error occurred, {} >= {}",
+                    FAULT_PERCENT, randomThreshold);
+            throw new RuntimeException("Something went wrong...[RESILIENCY TESTING]");
+        }
+
         ResponseDTO<ProductDTO> responseDTO =
                 new ResponseDTO<>(Boolean.TRUE, "Request processed successfully.", null);
         productRepository.findById(productId)

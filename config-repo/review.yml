@@ -55,7 +55,7 @@ logging:
   level:
     root: ERROR
     org.springframework.web: DEBUG
-    com.example: DEBUG
+    com.example: INFO
     org.hibernate: ERROR
 
 ---

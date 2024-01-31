@@ -9,7 +9,6 @@ import com.example.productcompositeservice.dto.ReviewDTO;
 import com.example.productcompositeservice.feign.ProductClient;
 import com.example.productcompositeservice.feign.ReviewClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import feign.FeignException;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import io.github.resilience4j.retry.annotation.Retry;

@@ -101,10 +101,10 @@ management.endpoint.health.show-details: "ALWAYS"
 
 logging:
   level:
-    root: INFO
-    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: INFO
+    root: ERROR
+    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: ERROR
     org.springframework.cloud.gateway: INFO
-    org.springframework.web.server.adapter.HttpWebHandlerAdapter: TRACE
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter: INFO
 
 # to configure gateway to use the certificate and HTTPS
 server.ssl:

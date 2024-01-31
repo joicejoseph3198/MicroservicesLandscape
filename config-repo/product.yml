@@ -18,7 +18,7 @@ logging:
   level:
     root: ERROR
     org.springframework.web: ERROR
-    com.example: DEBUG
+    com.example: INFO
     org.hibernate: ERROR
 
 spring.cloud.stream:

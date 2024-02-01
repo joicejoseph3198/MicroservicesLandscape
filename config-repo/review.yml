@@ -36,6 +36,9 @@ spring.cloud.stream.kafka.binder:
   brokers: 127.0.0.1
   defaultBrokerPort: 9092
 
+# To allow observability
+spring.cloud.stream.kafka.binder.enableObservation: true
+
 spring.application.name: review
 
 app.eureka-server: localhost

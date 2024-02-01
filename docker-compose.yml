@@ -179,6 +179,7 @@ services:
       - "8888:8888"
 
   zipkin:
+    container_name: zipkin
     image: openzipkin/zipkin:2.24.0
     restart: always
     mem_limit: 1024m

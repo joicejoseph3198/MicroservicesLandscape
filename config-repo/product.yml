@@ -18,7 +18,7 @@ logging:
   level:
     root: ERROR
     org.springframework.web: ERROR
-    com.example: INFO
+    com.example: DEBUG
     org.hibernate: ERROR
 
 spring.cloud.stream:
@@ -39,6 +39,15 @@ spring.cloud.stream.kafka.bindings.deleteMessageProcessor-in-0.consumer:
 spring.cloud.stream.kafka.binder:
   brokers: 127.0.0.1
   defaultBrokerPort: 9092
+
+# To allow observability
+spring.cloud.stream.kafka.binder.enableObservation: true
+
+# Observability in your MongoDB
+# Disable Spring Boot's autoconfigured tracing
+management.metrics.mongo.command.enabled: false
+# Enable it manually
+management.tracing.enabled: true
 
 spring.application.name: product
 

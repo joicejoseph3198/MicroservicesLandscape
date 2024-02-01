@@ -22,6 +22,9 @@ spring.cloud.stream.kafka.binder:
   brokers: 127.0.0.1
   defaultBrokerPort: 9092
 
+# To allow observability
+spring.cloud.stream.kafka.binder.enableObservation: true
+
 spring.application.name: composite
 
 app.eureka-server: localhost
@@ -40,7 +43,7 @@ logging:
   level:
     root: ERROR
     org.springframework.web: ERROR
-    com.example: INFO
+    com.example: DEBUG
     org.hibernate: ERROR
 
 #swagger-ui:

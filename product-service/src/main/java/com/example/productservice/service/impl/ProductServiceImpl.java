@@ -1,6 +1,7 @@
 package com.example.productservice.service.impl;
 
 import com.example.UtilService.dto.ResponseDTO;
+import com.example.productservice.dto.FilterProductDTO;
 import com.example.productservice.dto.ProductDTO;
 import com.example.productservice.entity.Product;
 import com.example.productservice.enums.*;
@@ -9,18 +10,30 @@ import com.example.productservice.repository.ProductRepository;
 import com.example.productservice.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
+import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
+import javax.naming.ServiceUnavailableException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.util.*;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
+
+import static javax.management.Query.in;
 
 @Service
 @Slf4j
@@ -29,14 +42,16 @@ public class ProductServiceImpl implements ProductService {
     private final ProductMapper productMapper;
     private final ProductRepository productRepository;
     private final Faker faker;
+    private final MongoTemplate mongoTemplate;
 
     // Used for testing resiliency
-    private final static int FAULT_PERCENT = 50;
+    private static final int FAULT_PERCENT = 50;
 
     @Autowired
-    public ProductServiceImpl(ProductMapper productMapper, ProductRepository productRepository) {
+    public ProductServiceImpl(ProductMapper productMapper, ProductRepository productRepository, MongoTemplate mongoTemplate) {
         this.productMapper = productMapper;
         this.productRepository = productRepository;
+        this.mongoTemplate = mongoTemplate;
         this.faker = new Faker();
     }
 
@@ -48,7 +63,7 @@ public class ProductServiceImpl implements ProductService {
         if (FAULT_PERCENT < randomThreshold) {
             LOG.info("Bad luck, an error occurred, {} >= {}",
                     FAULT_PERCENT, randomThreshold);
-            throw new RuntimeException("Something went wrong...[RESILIENCY TESTING]");
+            throw new UnsupportedOperationException("Something went wrong...[RESILIENCY TESTING]");
         }
 
         ResponseDTO<ProductDTO> responseDTO =
@@ -69,6 +84,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ResponseDTO<String> createProduct(ProductDTO productDTO) {
+        LOG.info("received createProduct request");
         ResponseDTO<String> responseDTO =
                 new ResponseDTO<>(Boolean.TRUE, "Product successfully created.", null);
 
@@ -96,8 +112,79 @@ public class ProductServiceImpl implements ProductService {
                     responseDTO.setStatus(Boolean.FALSE);
                     responseDTO.setMessage("Invalid Request or Duplicate Product");
                 });
-
+        LOG.info("finished processing createProduct request");
         return responseDTO;
+    }
+
+    /*
+    Filters data by dynamically generating query based on the received input
+    */
+    @Override
+    public Page<ProductDTO> filterData(FilterProductDTO filterProductDTO){
+        Integer offset = Optional.ofNullable(filterProductDTO.offset()).orElse(0);
+        Integer limit = Optional.ofNullable(filterProductDTO.limit()).orElse(10);
+        int page = offset / limit;
+        Pageable pageable = PageRequest.of(page, limit);
+        Query dynamicQuery = new Query().with(pageable);
+
+        // call function to add sub-queries
+        Optional.of(filterProductDTO)
+                .ifPresent(request ->
+                        addCriteriaToQuery(request,dynamicQuery)
+                );
+        List<Product> queryResult = mongoTemplate.find(dynamicQuery, Product.class);
+        List<ProductDTO> productList = productMapper.toDtoList(queryResult);
+        return PageableExecutionUtils.getPage(productList, pageable,
+                ()-> mongoTemplate.count(dynamicQuery, Product.class));
+    }
+
+    /*
+    creates criteria based on input fields and their values, and adds them to the provided query (givenQuery)
+    */
+    private void addCriteriaToQuery(FilterProductDTO filterProductDTO, Query givenQuery){
+        LOG.info("constructing queries for filtering.");
+        List<Criteria> andCriteria = new ArrayList<>();
+
+        // Create BETWEEN query for price
+        if(Objects.nonNull(filterProductDTO.minPrice()) && Objects.nonNull(filterProductDTO.maxPrice())){
+            Criteria priceCriteria =
+                    Criteria
+                            .where("price")
+                            .gt(filterProductDTO.minPrice())
+                            .lt(filterProductDTO.maxPrice());
+            andCriteria.add(priceCriteria);
+        }
+        // Create IN query for switches, keyCaps, brand, category, connectivity, layout
+        Field[] fields = filterProductDTO.getClass().getDeclaredFields();
+        for(Field currentField: fields){
+            try {
+                currentField.setAccessible(true);
+                if(Collection.class.isAssignableFrom(currentField.getType()) && !CollectionUtils.isEmpty((Collection<?>) currentField.get(filterProductDTO))){
+                    Criteria valuesInCriteria =
+                            Criteria
+                                    .where(currentField.getName())
+                                    .in(((Collection<?>) currentField.get(filterProductDTO)).toArray());
+                    andCriteria.add(valuesInCriteria);
+                }
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        // Create SORT Query
+        if(Objects.nonNull(filterProductDTO.sortType())){
+            Sort sort;
+            switch (filterProductDTO.sortType()) {
+                case PRICE_DESC -> sort = Sort.by(Sort.Direction.DESC, "price");
+                default -> sort = Sort.by(Sort.Direction.ASC, "price");
+            }
+            givenQuery.with(sort);
+        }
+
+        if(!CollectionUtils.isEmpty(andCriteria)){
+            givenQuery.addCriteria(new Criteria().andOperator(andCriteria));
+        }
+        LOG.info("finished constructing queries.");
     }
 
     @Override
@@ -152,8 +239,5 @@ public class ProductServiceImpl implements ProductService {
             productRepository.saveAll(reviewList);
         }
     }
-
-    /* TODO: 1. Create APIs for deletion, updation and insert dummy data. */
-    /* TODO: 2. Add Documentation */
 
 }

@@ -15,7 +15,7 @@ public enum Category {
 
     MACRO("MacroPad");
 
-    private String value;
+    private final String value;
 
     private Category(String value) {
         this.value = value;

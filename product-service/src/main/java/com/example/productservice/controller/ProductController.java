@@ -1,9 +1,11 @@
 package com.example.productservice.controller;
 
 import com.example.UtilService.dto.ResponseDTO;
+import com.example.productservice.dto.FilterProductDTO;
 import com.example.productservice.dto.ProductDTO;
 import com.example.productservice.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,5 +34,10 @@ public class ProductController {
     @GetMapping(value = "/generateDummy")
     ResponseDTO<String> generateDummyRecord(){
         return productService.insertDummyData();
+    }
+
+    @PostMapping(value = "/fetchPage")
+    Page<ProductDTO> fetchProductPage(@RequestBody FilterProductDTO filterProductDTO){
+        return productService.filterData(filterProductDTO);
     }
 }

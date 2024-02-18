@@ -3,6 +3,7 @@ version: '3.9'
 services:
   product:
     container_name: product
+    image: microservice-landscape/product
     build: ./product-service
     mem_limit: 512M
     environment:
@@ -18,6 +19,7 @@ services:
 
   review:
     container_name: review
+    image: microservice-landscape/review
     build: ./review-service
     mem_limit: 512M
     environment:
@@ -33,6 +35,7 @@ services:
 
   composite:
     container_name: composite
+    image: microservice-landscape/composite
     build: ./product-composite-service
     mem_limit: 512M
     depends_on:
@@ -59,6 +62,8 @@ services:
       interval: 5s
       timeout: 2s
       retries: 60
+    networks:
+      - kind
 
   mysql:
     container_name: mysql
@@ -78,6 +83,8 @@ services:
       interval: 5s
       timeout: 2s
       retries: 60
+    networks:
+      - kind
 
   kafka:
     container_name: kafka
@@ -93,6 +100,8 @@ services:
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
     depends_on:
       - zookeeper
+    networks:
+      - kind
 
   zookeeper:
     container_name: zookeeper
@@ -103,6 +112,8 @@ services:
       - "2181:2181"
     environment:
       - ZOOKEEPER_CLIENT_PORT=2181
+    networks:
+      - kind
 
   kafka-ui:
     container_name: kafka-ui
@@ -114,9 +125,12 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
       DYNAMIC_CONFIG_ENABLED: 'true'
+    networks:
+      - kind
 
   auth-server:
     container_name: auth-server
+    image: microservice-landscape/auth-server
     build: ./authorization-server
     mem_limit: 512M
     ports:
@@ -136,6 +150,7 @@ services:
 
   discovery:
     container_name: discovery
+    image: microservice-landscape/discovery
     build: ./discovery-service
     depends_on:
       - config-server
@@ -149,6 +164,7 @@ services:
 
   gateway:
     container_name: gateway
+    image: microservice-landscape/gateway
     build: ./gateway-service
     mem_limit: 512m
     depends_on:
@@ -164,6 +180,7 @@ services:
 
   config-server:
     container_name: config-server
+    image: microservice-landscape/config-server
     build: ./config-server
     mem_limit: 512m
     environment:
@@ -192,3 +209,6 @@ volumes:
   sqldata:
   mongodata:
 
+networks:
+  kind:
+    external: true

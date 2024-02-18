@@ -1,3 +1,4 @@
+# NOT IN USE IN CLUSTER
 server:
   port: 8761
 
@@ -29,3 +30,16 @@ eureka:
     response-cache-update-interval-ms: 5000
 
 management.endpoints.web.exposure.include: "*"
+
+---
+spring.config.activate.on-profile: docker
+
+eureka:
+  instance:
+    securePortEnabled: true
+    hostname: discovery
+  client:
+    registerWithEureka: false
+    fetchRegistry: false
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/

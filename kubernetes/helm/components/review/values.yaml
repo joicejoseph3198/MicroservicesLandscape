@@ -1,0 +1,28 @@
+fullnameOverride: review
+
+image:
+  name: review
+
+env:
+  SPRING_PROFILES_ACTIVE: "docker"
+
+ports:
+  - name: http
+    containerPort: 8082
+    protocol: TCP
+
+livenessProbe_enabled: true
+livenessProbe:
+  httpGet:
+    port: 8082
+readinessProbe_enabled: true
+readinessProbe:
+  httpGet:
+    port: 8082
+
+service:
+  ports:
+    - port: 8082
+      targetPort: http
+      protocol: TCP
+      name: http

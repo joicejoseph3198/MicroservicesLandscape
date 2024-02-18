@@ -10,6 +10,6 @@ public interface ProductService {
     ResponseDTO<String> createProduct(ProductDTO productDTO);
     ResponseDTO<String> deleteProduct(String productId);
     ResponseDTO<String> insertDummyData();
-    public Page<ProductDTO> filterData(FilterProductDTO filterProductDTO);
+    Page<ProductDTO> filterData(FilterProductDTO filterProductDTO);
 
 }

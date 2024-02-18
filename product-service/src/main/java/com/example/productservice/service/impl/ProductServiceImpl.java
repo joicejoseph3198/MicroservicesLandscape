@@ -10,7 +10,6 @@ import com.example.productservice.repository.ProductRepository;
 import com.example.productservice.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import net.datafaker.Faker;
-import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +24,10 @@ import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
-
-import javax.naming.ServiceUnavailableException;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.random.RandomGenerator;
 import java.util.stream.IntStream;
-
-import static javax.management.Query.in;
 
 @Service
 @Slf4j
@@ -61,8 +55,7 @@ public class ProductServiceImpl implements ProductService {
         // For testing resiliency
         int randomThreshold = RandomGenerator.getDefault().nextInt(1, 100);
         if (FAULT_PERCENT < randomThreshold) {
-            LOG.info("Bad luck, an error occurred, {} >= {}",
-                    FAULT_PERCENT, randomThreshold);
+            LOG.info("Bad luck, an error occurred, {} >= {}", FAULT_PERCENT, randomThreshold);
             throw new UnsupportedOperationException("Something went wrong...[RESILIENCY TESTING]");
         }
 
@@ -143,7 +136,7 @@ public class ProductServiceImpl implements ProductService {
     */
     private void addCriteriaToQuery(FilterProductDTO filterProductDTO, Query givenQuery){
         LOG.info("constructing queries for filtering.");
-        List<Criteria> andCriteria = new ArrayList<>();
+        List<Criteria> andCriteriaList = new ArrayList<>();
 
         // Create BETWEEN query for price
         if(Objects.nonNull(filterProductDTO.minPrice()) && Objects.nonNull(filterProductDTO.maxPrice())){
@@ -152,7 +145,7 @@ public class ProductServiceImpl implements ProductService {
                             .where("price")
                             .gt(filterProductDTO.minPrice())
                             .lt(filterProductDTO.maxPrice());
-            andCriteria.add(priceCriteria);
+            andCriteriaList.add(priceCriteria);
         }
         // Create IN query for switches, keyCaps, brand, category, connectivity, layout
         Field[] fields = filterProductDTO.getClass().getDeclaredFields();
@@ -164,25 +157,25 @@ public class ProductServiceImpl implements ProductService {
                             Criteria
                                     .where(currentField.getName())
                                     .in(((Collection<?>) currentField.get(filterProductDTO)).toArray());
-                    andCriteria.add(valuesInCriteria);
+                    andCriteriaList.add(valuesInCriteria);
                 }
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
         }
-
         // Create SORT Query
         if(Objects.nonNull(filterProductDTO.sortType())){
             Sort sort;
-            switch (filterProductDTO.sortType()) {
-                case PRICE_DESC -> sort = Sort.by(Sort.Direction.DESC, "price");
-                default -> sort = Sort.by(Sort.Direction.ASC, "price");
+            if (Objects.requireNonNull(filterProductDTO.sortType()) == SortType.PRICE_DESC) {
+                sort = Sort.by(Sort.Direction.DESC, "price");
+            } else {
+                sort = Sort.by(Sort.Direction.ASC, "price");
             }
             givenQuery.with(sort);
         }
 
-        if(!CollectionUtils.isEmpty(andCriteria)){
-            givenQuery.addCriteria(new Criteria().andOperator(andCriteria));
+        if(!CollectionUtils.isEmpty(andCriteriaList)){
+            givenQuery.addCriteria(new Criteria().andOperator(andCriteriaList));
         }
         LOG.info("finished constructing queries.");
     }

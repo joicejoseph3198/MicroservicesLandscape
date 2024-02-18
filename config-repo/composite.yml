@@ -19,7 +19,7 @@ spring.cloud.stream:
         required-groups: auditGroup
 
 spring.cloud.stream.kafka.binder:
-  brokers: 127.0.0.1
+  brokers: 172.18.0.7
   defaultBrokerPort: 9092
 
 # To allow observability
@@ -27,25 +27,25 @@ spring.cloud.stream.kafka.binder.enableObservation: true
 
 spring.application.name: composite
 
-app.eureka-server: localhost
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://${app.eureka-username}:${app.eureka-password}@${app.eureka-server}:8761/eureka/
-    initialInstanceInfoReplicationIntervalSeconds: 5
-    registryFetchIntervalSeconds: 5
-  instance:
-    preferIpAddress: true
-    leaseRenewalIntervalInSeconds: 5
-    leaseExpirationDurationInSeconds: 5
+# Replaced with Kubernetes built in DNS
+#app.eureka-server: localhost
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://${app.eureka-username}:${app.eureka-password}@${app.eureka-server}:8761/eureka/
+#    initialInstanceInfoReplicationIntervalSeconds: 5
+#    registryFetchIntervalSeconds: 5
+#  instance:
+#    preferIpAddress: true
+#    leaseRenewalIntervalInSeconds: 5
+#    leaseExpirationDurationInSeconds: 5
 
 logging:
   level:
     root: ERROR
     org.springframework.web: ERROR
-    com.example: DEBUG
+    com.example: INFO
     org.hibernate: ERROR
-
 #swagger-ui:
 #  oauth2-redirect-url: /swagger-ui/oauth2-redirect.html
 #  oauth:
@@ -100,6 +100,6 @@ server.port: 8083
 spring.cloud.stream.kafka.binder.brokers: kafka
 
 app:
-  eureka-server: discovery
+  # eureka-server: discovery
   auth-server: auth-server
 

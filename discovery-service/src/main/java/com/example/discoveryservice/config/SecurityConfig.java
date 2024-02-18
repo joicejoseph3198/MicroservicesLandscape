@@ -54,8 +54,10 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
-                authorize-> authorize.anyRequest().authenticated()
-        )
+                        authorize-> authorize
+                                .requestMatchers("/actuator/**").permitAll()
+                                .anyRequest().authenticated()
+                )
                 .httpBasic(Customizer.withDefaults());
         return http.build();
     }

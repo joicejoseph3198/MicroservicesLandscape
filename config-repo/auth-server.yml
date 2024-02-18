@@ -8,16 +8,16 @@ app:
   eureka-password: admin
   eureka-server: localhost
 
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: "http://${app.eureka-username}:${app.eureka-password}@${app.eureka-server}:8761/eureka/"
-    initialInstanceInfoReplicationIntervalSeconds: 5
-    registryFetchIntervalSeconds: 5
-  instance:
-    preferIpAddress: true
-    leaseRenewalIntervalInSeconds: 5
-    leaseExpirationDurationInSeconds: 5
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: "http://${app.eureka-username}:${app.eureka-password}@${app.eureka-server}:8761/eureka/"
+#    initialInstanceInfoReplicationIntervalSeconds: 5
+#    registryFetchIntervalSeconds: 5
+#  instance:
+#    preferIpAddress: true
+#    leaseRenewalIntervalInSeconds: 5
+#    leaseExpirationDurationInSeconds: 5
 
 management.endpoint.health.show-details: "ALWAYS"
 management.endpoints.web.exposure.include: "*"
@@ -31,9 +31,5 @@ logging:
 
 ---
 spring.config.activate.on-profile: docker
-
 app.eureka-server: discovery
-
-
-
-
+server.port: 80

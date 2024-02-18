@@ -1,0 +1,28 @@
+fullnameOverride: composite
+
+image:
+  name: composite
+
+env:
+  SPRING_PROFILES_ACTIVE: "docker"
+
+ports:
+  - name: http
+    containerPort: 8083
+    protocol: TCP
+
+livenessProbe_enabled: true
+livenessProbe:
+  httpGet:
+    port: 8083
+readinessProbe_enabled: true
+readinessProbe:
+  httpGet:
+    port: 8083
+
+service:
+  ports:
+    - port: 8083
+      targetPort: http
+      protocol: TCP
+      name: http

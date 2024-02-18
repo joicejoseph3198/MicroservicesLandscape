@@ -9,7 +9,7 @@ app:
 spring:
   datasource:
     driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/reviewdb
+    url: jdbc:mysql://localhost:3306/reviewdb?allowPublicKeyRetrieval=true&useSSL=false
     username: joice
     password: password
   jpa:
@@ -33,7 +33,7 @@ spring.cloud.stream.kafka.bindings.deleteMessageProcessor-in-0.consumer:
   enableDlq: true
 
 spring.cloud.stream.kafka.binder:
-  brokers: 127.0.0.1
+  brokers: kafka
   defaultBrokerPort: 9092
 
 # To allow observability
@@ -57,7 +57,7 @@ eureka:
 logging:
   level:
     root: ERROR
-    org.springframework.web: DEBUG
+    org.springframework.web: INFO
     com.example: INFO
     org.hibernate: ERROR
 
@@ -68,11 +68,17 @@ server.port: 8082
 
 app.eureka-server: discovery
 
+# discovery here is the name of the eureka's k8 service
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${app.eureka-username}:${app.eureka-password}@discovery:8761/eureka/
+
 logging:
   level:
     root: ERROR
     org.springframework.web: ERROR
-    com.example: DEBUG
+    com.example: INFO
     org.hibernate: ERROR
 
 spring:

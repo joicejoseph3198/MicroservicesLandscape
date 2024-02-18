@@ -1,0 +1,2 @@
+{{- template "common.configmap_from_file" . -}}
+

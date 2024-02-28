@@ -19,7 +19,7 @@ spring.cloud.stream:
         required-groups: auditGroup
 
 spring.cloud.stream.kafka.binder:
-  brokers: 172.18.0.7
+  brokers: kafka
   defaultBrokerPort: 9092
 
 # To allow observability
@@ -44,7 +44,7 @@ logging:
   level:
     root: ERROR
     org.springframework.web: ERROR
-    com.example: INFO
+    com.example: DEBUG
     org.hibernate: ERROR
 #swagger-ui:
 #  oauth2-redirect-url: /swagger-ui/oauth2-redirect.html
@@ -57,8 +57,12 @@ logging:
 #    tokenUrl: https://localhost:8443/oauth2/token
 
 
+server.forward-headers-strategy: framework
+
+app.auth-server: localhost
 # curl https://${TENANT}/.well-known/openid-configuration -s | jq
-spring.security.oauth2.resourceserver.jwt.issuer-uri: http://${app.auth-server}:9999
+spring.security.oauth2.resourceserver.jwt.issuer-uri: http://${app.auth-server}:80
+
 
 # Configuration for circuit breaker, retry mechanism & time limiter
 resilience4j.retry:
@@ -99,7 +103,4 @@ server.port: 8083
 
 spring.cloud.stream.kafka.binder.brokers: kafka
 
-app:
-  # eureka-server: discovery
-  auth-server: auth-server
 

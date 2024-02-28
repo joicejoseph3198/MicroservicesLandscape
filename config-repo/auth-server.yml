@@ -1,5 +1,5 @@
 server.port:
-  9999
+  80
 
 spring.application.name: auth-server
 
@@ -26,10 +26,9 @@ logging:
   level:
     root: INFO
     org.springframework.web: ERROR
-    com.example: INFO
+    com.example: DEBUG
     org.hibernate: ERROR
 
 ---
 spring.config.activate.on-profile: docker
-app.eureka-server: discovery
 server.port: 80

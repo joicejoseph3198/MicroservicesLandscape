@@ -2,17 +2,33 @@
 
 Status: In progress
 
-Overview of the project: 
+**Overview of the project:**
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled.png)
+Built microservices-based application based on Java 17 and Spring Boot 3, and implemented various technologies used in building large-scale, real world microservices architecture.
+Overview of the project: Built microservices-based application based on Java 17 and Spring Boot 3, and implemented various technologies used in building large-scale, real world microservices architecture.
 
-I’m aware that the set of supporting services that I’ve applied throughtout my project are rather overwhelmingly complex for such few microservices and somewhat over engineered and at some places not fully implemented. However the purpose from the beginning was, to be able to learn about services that can support a much larger microservices landscape.
+**Key Features:**
 
-Tech stack/Technologies used:
+- Built cooperating microservice using Springboot.
+- Dockerized the microservices to easily switch between developement, testing and deployment.
+- Integrated databases like MySQL, and MongoDB for persistance.
+- Used TestContainers to write integration tests.
+- Used Kafka to setup event driven communication
+- Added a discovery service using Netflix Eureka
+- Added Spring Cloud Gateway to hide microservices behind an edge server
+- Secured APIs by creating a local authorization server using Spring Security
+- Added a configuration server to centralize configuration.
+- Used Resilience4j to introduce circuit breaker mechanism
+- Integrated Micrometer and Zipkin for distributed tracing and observability
+- Used helm charts to create manifest files for kubernetes
+- Created a local kubernetes cluster using kind and deployed entire microservice landscape to the cluster.
 
-Java 17, SpringBoot 3.X, Docker, Kubernetes, Helm, MySQL, MongoDB, Kafka
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2035.png)
 
-Stage 1: Creating cooperating microservices
+**I’m aware that the set of supporting services that I’ve applied throughtout my project are rather overwhelmingly complex for such few microservices and somewhat over engineered and at some places not fully implemented. However the purpose from the beginning was, to be able to learn about services that can support a much larger microservices landscape.**
+
+**Stage 1: Creating cooperating microservices**
 
 Created a small set of cooperating microservice with minimalistic functionality, to which I’ve added features as I’ve made progress with my project. 
 
@@ -22,7 +38,7 @@ Review Service - manages reviews about the products
 
 Product Composite Service -  composite service aggregates information from the two core services and presents information about a product
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%201.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%201.png)
 
 1. Created barebones microservices with minimal functionality
 2. Didn’t have a discovery service used [localhost](http://localhost) and hardcoded port numbers for each microservice. Used the RestTemplate in composite service to perform HTTP requests to APIs that are exposed by the core services
@@ -30,19 +46,19 @@ Product Composite Service -  composite service aggregates information from the t
 microservices. Added that as a dependency to my core services by packaging it as jar
 4. Created global exception controller to create custom exception for error handling
 
-Stage 2: Dockerizing services
+**Stage 2: Dockerizing services**
 
 1. Dockerized my microservices
 2. Created docker images for each of the microservices and added a Docker-specific spring profile to each of them.
 3. Created and configured a docker compose file so I could easily bring all my services up.
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%202.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%202.png)
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%203.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%203.png)
 
 Stage 3: Adding Persistence
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%204.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%204.png)
 
 1. Added persistence to my services. Tried to follow a database per microservice approach.Used mongodb for my product service and mysql for review service. 
 2. Wrote integration tests using TestConatiners
@@ -50,13 +66,13 @@ Stage 3: Adding Persistence
 4. Used DataFaker to generate dummy data 
 5. Configured swagger for composite microservice
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%205.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%205.png)
 
 [Grunt developer’s guide to test containers for integration testing](https://levelup.gitconnected.com/grunt-developers-guide-to-test-containers-for-integration-testing-55ccef00db26)
 
-Stage 4: event driven microservices
+**Stage 4: event driven microservices**
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%206.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%206.png)
 
 1. Used Spring Cloud Stream to develop event-driven asynchronous services that work with Kafka as messaging systems.
 2. Created an API for composite service to generate delete events on each core service topic and then return an OK response back to the caller without waiting for processing to take place in the core services.
@@ -81,51 +97,51 @@ dead-letter queue. To avoid overloading the infrastructure during temporary fail
 network error, it must be possible to configure how often retries are performed, preferably with an
 increasing length of time between each retry.
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%207.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%207.png)
 
-![producer configurations](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%208.png)
+![producer configurations](../ProjectDocumentation/DocumentationImages/Untitled%208.png)
 
 producer configurations
 
-![consumer configurations](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%209.png)
+![consumer configurations](../ProjectDocumentation/DocumentationImages/Untitled%209.png)
 
 consumer configurations
 
 A helper class StreamBridge is used to trigger the processing. It will publish a message on a topic. A function that consumes events from a topic (not creating new events) can be defined by implementing the functional interface java.util.function.Consumer as:
 
-![using stream bridge to publish event](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2010.png)
+![using stream bridge to publish event](../ProjectDocumentation/DocumentationImages/Untitled%2010.png)
 
 using stream bridge to publish event
 
-![consumer bean](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2011.png)
+![consumer bean](../ProjectDocumentation/DocumentationImages/Untitled%2011.png)
 
 consumer bean
 
 1. Configured actuator into microservices for monitoring health
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2012.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2012.png)
 
-Stage 5: Discovery Service
+**Stage 5: Discovery Service**
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2013.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2013.png)
 
 Used Netflix Eureka for service discovery
 
 With Spring Cloud, it is easier to set up a Netflix Eureka server and adapt Spring Boot-based microservices, both so that they can register themselves to Eureka during startup and, when acting as a client to other microservices, to keep track of available microservice instances.
 
-![discovery server configuration](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2014.png)
+![discovery server configuration](../ProjectDocumentation/DocumentationImages/Untitled%2014.png)
 
 discovery server configuration
 
-![discovery client configuration](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2015.png)
+![discovery client configuration](../ProjectDocumentation/DocumentationImages/Untitled%2015.png)
 
 discovery client configuration
 
 Used a single instance of discovery server, which is okay in from the project perspective. But would probably need multi instance in a production environment for high availabilty.
 
-Stage 6: Edge Server/Gateway Service
+**Stage 6: Edge Server/Gateway Service**
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2016.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2016.png)
 
 Introduced an edge server to the landscape, it can be used to secure a microservice landscape,
 which involves hiding private services from external usage and protecting public services when they’re used by external clients. All incoming requests will now be routed through the edge server
@@ -133,9 +149,9 @@ which involves hiding private services from external usage and protecting public
 - Gateway uses Netflix Eureka to find the microservices it will route traffic to, so configured it as a Eureka client.
 - Added routing rules
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2017.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2017.png)
 
-Stage 7: Authorization Server
+**Stage 7: Authorization Server**
 
 1. Secured access to the discovery service using HTTP Basic authentication.
 2. Adding a local authorization server to the system landscape
@@ -149,9 +165,9 @@ access token to contain valid OAuth 2.0 scopes:
 • The product:read scope will be required for accessing the read-only APIs.
 • The product:write scope will be required for accessing the create and delete APIs.
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2018.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2018.png)
 
-Stage 8: Config Service
+**Stage 8: Config Service**
 
 Introduced Spring Cloud Config, which provides the centralized management of configuration files for all the microservices 
 
@@ -159,25 +175,25 @@ configuration files for all our microservices are stored in  central configurati
 
 For the project I’ve resorted to using local file system as the repository but I plan to change this with a Github repository or something like Hashicorp Vault.
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2019.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2019.png)
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2020.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2020.png)
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2021.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2021.png)
 
 Structure of the local config repository looks something like this:
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2022.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2022.png)
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2023.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2023.png)
 
 Future enchancement: Try to use Spring Cloud Bus to add support to detect changes in configuration and pushing notification to the affected microservice
 
-Stage 9 : Resiliency using Circuit Breaker mechanism
+**Stage 9 : Resiliency using Circuit Breaker mechanism**
 
 Used resilience4j to implement a circuit breaker and retry mechanism between product-composite and product service.
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2024.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2024.png)
 
 How circuit breakers work:
 
@@ -198,17 +214,17 @@ go back to normal operation. This makes a microservice resilient to faults, or s
 capability that is indispensable in a system landscape of microservices that communicate
 synchronously with each other.
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2025.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2025.png)
 
-![product composite service configurations](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2026.png)
+![product composite service configurations](../ProjectDocumentation/DocumentationImages/Untitled%2026.png)
 
 product composite service configurations
 
-![simulating a scenario where product service would fail](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2027.png)
+![simulating a scenario where product service would fail](../ProjectDocumentation/DocumentationImages/Untitled%2027.png)
 
 simulating a scenario where product service would fail
 
-Stage 10: Observability
+**Stage 10: Observability**
 
 Set up distributed tracing for observability.
 
@@ -219,19 +235,19 @@ Observability in microservices architecture involves understanding and monitorin
 
 This can be handy when you have a lot of components in your system. Observability is crucial because it lets you know what exactly happened, when, how and why.
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2028.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2028.png)
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2029.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2029.png)
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2030.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2030.png)
 
-Stage 11: local Kubernetes cluster
+**Stage 11: Local Kubernetes cluster**
 
 Deployed my entire microservices landscape to a local kubernetes cluster using k8s distribution called kind ( kubernetes in docker) similar to minikube, or k3s etc.
 
 1. Replaced discovery service, Netflix Eureka. Kubernetes comes with a built-in discovery service based on Kubernetes Service objects and the kube-proxy runtime component. This makes it unnecessary to deploy a separate discovery service.
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2031.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2031.png)
 
 1. Used Springboot’s built in implementations of liveness and readiness probes are essential for Kubernetes to be able to manage our Pods. A liveness probe tells Kubernetes if a Pod needs to be replaced, and a readiness probe tells Kubernetes if its Pod is ready to accept requests.
 2. 
@@ -253,20 +269,25 @@ The dev-env environment chart will also provide environment-specific default val
 
 So essentially we will have one reusable library chart, named common; a set of microservices and resource manager-specific charts, placed in the components folder; and one environment-specific parent chart, placed in the environments folder.
 
-![overview of how I’ve structer my helm charts](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2032.png)
+![overview of how I’ve structured my helm charts](../ProjectDocumentation/DocumentationImages/Untitled%2032.png)
 
-overview of how I’ve structer my helm charts
+overview of how I’ve structured my helm charts
 
-![configuration for my kind cluster](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2033.png)
+![configuration for my kind cluster](../ProjectDocumentation/DocumentationImages/Untitled%2033.png)
 
 configuration for my kind cluster
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled.png)
+![Untitled](../../ProjectDocumentation/DocumentationImages/Untitled.png)
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2034.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2034.png)
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2035.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2035.png)
 
-![Untitled](Documentation%205b7ef6eb41dc41e3b3f7c7650ffa9594/Untitled%2036.png)
+![Untitled](../ProjectDocumentation/DocumentationImages/Untitled%2036.png)
 
-Future Improvements:
+**Future Improvements:**
+- Create more fleshed out services.
+- Replace some features by implementing Kubernetes features to simplify the System
+- Centralize logging with the EFK/ELK Stack
+- Add more detailed test cases, and API documentation
+- Setup some kind of monitoring system, using Grafana Dashboards

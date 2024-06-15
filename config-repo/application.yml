@@ -21,6 +21,15 @@ management.endpoint.health.group.readiness.include: readinessState
 management.zipkin.tracing.endpoint: http://zipkin:9411/api/v2/spans
 management.tracing.sampling.probability: 1.0
 logging.pattern.level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+spring.codec.log-request-details: true
+
+logging:
+  level:
+    root: ERROR
+    org.springframework.cloud.gateway: INFO
+    org.springframework.security: INFO
+    org.springframework.web: DEBUG
+    org.springframework.http: DEBUG
 
 ---
 spring.config.activate.on-profile: docker

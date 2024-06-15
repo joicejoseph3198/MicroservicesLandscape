@@ -4,12 +4,15 @@ import com.example.UtilService.dto.ResponseDTO;
 import com.example.productservice.dto.FilterProductDTO;
 import com.example.productservice.dto.ProductDTO;
 import com.example.productservice.service.ProductService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/product")
+@Slf4j
 public class ProductController {
     private final ProductService productService;
 
@@ -17,6 +20,7 @@ public class ProductController {
     public ProductController(ProductService productService){
         this.productService = productService;
     }
+
     @GetMapping(value = "/{id}")
     public ResponseDTO<ProductDTO> getProductById(@PathVariable String id){
         return productService.getProductById(id);
@@ -37,7 +41,9 @@ public class ProductController {
     }
 
     @PostMapping(value = "/fetchPage")
-    Page<ProductDTO> fetchProductPage(@RequestBody FilterProductDTO filterProductDTO){
+    Page<ProductDTO> fetchProductPage(@RequestBody FilterProductDTO filterProductDTO, HttpServletRequest request){
+        String authHeader = request.getHeader("Authorization");
+        log.debug("Received Authorization header: {}", authHeader);
         return productService.filterData(filterProductDTO);
     }
 }

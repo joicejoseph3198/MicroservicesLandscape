@@ -86,6 +86,29 @@ services:
     networks:
       - kind
 
+  mysql-2:
+    container_name: mysql-2
+    image: mysql:8.0.32
+    mem_limit: 512m
+    volumes:
+      - sqldata-2:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    expose:
+      - "3307"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_USER=joice
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=authdb
+    healthcheck:
+      test: "mysql -u root -p$$MYSQL_ROOT_PASSWORD  -e 'SHOW DATABASES'"
+      interval: 5s
+      timeout: 2s
+      retries: 60
+    networks:
+      - kind
+
   kafka:
     container_name: kafka
     image: confluentinc/cp-kafka:7.3.1
@@ -207,6 +230,7 @@ services:
 
 volumes:
   sqldata:
+  sqldata-2:
   mongodata:
 
 networks:

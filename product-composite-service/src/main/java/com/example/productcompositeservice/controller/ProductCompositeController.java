@@ -2,7 +2,6 @@ package com.example.productcompositeservice.controller;
 
 import com.example.UtilService.dto.ResponseDTO;
 import com.example.productcompositeservice.dto.ProductAggregate;
-import com.example.productcompositeservice.messaging.ProductCompositeProducer;
 import com.example.productcompositeservice.service.ProductCompositeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +16,7 @@ public class ProductCompositeController {
     public ProductCompositeController(ProductCompositeService productCompositeService){
         this.productCompositeService = productCompositeService;
     }
+
     @GetMapping(value = "/{id}")
     public ResponseDTO<ProductAggregate> getProductAggregate(@PathVariable String id){
         return productCompositeService.getProductAggregate(id);

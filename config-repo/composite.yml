@@ -1,5 +1,6 @@
 server.port: 7000
 management.endpoint.health.show-details: "ALWAYS"
+management.endpoints.web.exposure.include: "*"
 
 app:
   eureka-username: admin
@@ -55,13 +56,6 @@ logging:
 #  oAuthFlow:
 #    authorizationUrl: https://localhost:8443/oauth2/authorize
 #    tokenUrl: https://localhost:8443/oauth2/token
-
-
-server.forward-headers-strategy: framework
-
-app.auth-server: localhost
-# curl https://${TENANT}/.well-known/openid-configuration -s | jq
-spring.security.oauth2.resourceserver.jwt.issuer-uri: http://${app.auth-server}:80
 
 
 # Configuration for circuit breaker, retry mechanism & time limiter

@@ -15,10 +15,14 @@ livenessProbe_enabled: true
 livenessProbe:
   httpGet:
     port: 8083
+  initialDelaySeconds: 300
+  periodSeconds: 30
 readinessProbe_enabled: true
 readinessProbe:
   httpGet:
     port: 8083
+  initialDelaySeconds: 300
+  periodSeconds: 30
 
 service:
   ports:

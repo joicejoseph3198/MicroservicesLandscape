@@ -1,12 +1,7 @@
 server:
   port: 8443 # The default ports are 8080 for HTTP and 8443 for HTTPS.
 
-# spring started web and spring cloud gateway are not compatible
-
-# https://${TENANT}/
-# curl https://${TENANT}/.well-known/openid-configuration -s | jq
-spring.security.oauth2.resourceserver.jwt.issuer-uri: http://${app.auth-server}:80
-
+# spring starter web and spring cloud gateway are not compatible
 
 # credentials to access discovery-service
 app:
@@ -30,8 +25,10 @@ app:
 spring.application.name: gateway
 # predicate - identifies which request to re-route
 # uri - route to service ( mention name as in the discovery service)
-spring.cloud.gateway.routes:
-
+spring.cloud.gateway:
+  default-filters:
+    - TokenRelay=
+  routes:
   - id: product-composite
     uri: http://composite:8083
     predicates:
@@ -71,20 +68,10 @@ spring.cloud.gateway.routes:
     predicates:
       - Path=/product/**
 
-  - id: oauth2-server
+  - id: auth-server
     uri: http://auth-server:80
     predicates:
-      - Path=/oauth2/**
-
-  - id: oauth2-login
-    uri: http://auth-server:80
-    predicates:
-      - Path=/login/**
-
-  - id: oauth2-error
-    uri: http://auth-server:80
-    predicates:
-      - Path=/error/**
+      - Path=/auth/**
 
   - id: config-server
     uri: ${spring.cloud.config.uri}
@@ -101,7 +88,6 @@ management.endpoint.health.show-details: "ALWAYS"
 logging:
   level:
     root: ERROR
-    org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator: ERROR
     org.springframework.cloud.gateway: DEBUG
     org.springframework.web.server.adapter.HttpWebHandlerAdapter: DEBUG
 
@@ -112,12 +98,15 @@ server.ssl:
   key-store-password: password
   key-alias: localhost
 
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_ISSUER_URI}
+          audience: ${AUTH_AUDIENCE}
 ---
 spring.config.activate.on-profile: docker
 
 app:
   eureka-server: discovery
-  auth-server: auth-server
-spring.security.oauth2.resourceserver.jwt.issuer-uri: http://${app.auth-server}:80
-
-

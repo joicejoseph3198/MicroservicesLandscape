@@ -9,6 +9,14 @@ secrets:
     CONFIG_SERVER_USR: dev-usr
     CONFIG_SERVER_PWD: dev-pwd
 
+  auth0-secrets:
+    AUTH_DOMAIN: dev-mqzx0ckhfl41mzxd.jp.auth0.com
+    AUTH_CLIENT_ID: tlQWmyrFvVeTQw7CJbaX9dCVe5tERgAM
+    AUTH_CLIENT_SECRET: LXhdQLTB9tnay8dPtpFA1s57ZbHWqHTyqdDU3MIyfLRnPEnWBX314v6yq5l2lgeJ
+    AUTH_AUDIENCE: https://user-api
+    AUTH_REDIRECT_URI: https://localhost:30443/auth/public/login
+    AUTH_ISSUER_URI: https://dev-mqzx0ckhfl41mzxd.jp.auth0.com/
+
 config-server:
   envFromSecretRefs:
     - config-server-secrets
@@ -16,10 +24,12 @@ config-server:
 gateway:
   envFromSecretRefs:
     - config-client-credentials
+    - auth0-secrets
 
 auth-server:
   envFromSecretRefs:
     - config-client-credentials
+    - auth0-secrets
 
 product:
   envFromSecretRefs:

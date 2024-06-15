@@ -10,7 +10,8 @@ env:
   STORAGE_TYPE: mem
 
 ports:
-  - containerPort: 9411
+  - name: http
+    containerPort: 9411
     protocol: 'TCP'
 
 livenessProbe_enabled: true
@@ -46,3 +47,4 @@ service:
     - port: 9411
       targetPort: 9411
       protocol: 'TCP'
+      name: http

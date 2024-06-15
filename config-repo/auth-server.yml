@@ -29,6 +29,20 @@ logging:
     com.example: DEBUG
     org.hibernate: ERROR
 
+auth0:
+  domain: ${AUTH_DOMAIN}
+  clientId: ${AUTH_CLIENT_ID}
+  clientSecret: ${AUTH_CLIENT_SECRET}
+  audience: ${AUTH_AUDIENCE}
+  redirectUri: ${AUTH_REDIRECT_URI}
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${AUTH_ISSUER_URI}
+          audience: ${AUTH_AUDIENCE}
 ---
 spring.config.activate.on-profile: docker
 server.port: 80

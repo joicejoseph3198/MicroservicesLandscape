@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableFeignClients
-@EnableDiscoveryClient //to enable K8s-native Service Discovery
+@EnableDiscoveryClient
 public class ProductCompositeServiceApplication {
 
 	public static void main(String[] args) {

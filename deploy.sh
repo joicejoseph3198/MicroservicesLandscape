@@ -49,4 +49,3 @@ echo -e "${GREEN}Script executed in $duration seconds.${NC}"
 #7 Step 7: Wait for pods to be ready
 echo -e "${GREEN}[WAITING FOR PODS TO BE READY]${NC}"
 kubectl wait --timeout=600s --for=condition=ready pod --all
-

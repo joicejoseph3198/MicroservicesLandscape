@@ -26,8 +26,8 @@ spring.codec.log-request-details: true
 logging:
   level:
     root: ERROR
-    org.springframework.cloud.gateway: INFO
-    org.springframework.security: INFO
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
     org.springframework.web: DEBUG
     org.springframework.http: DEBUG
 

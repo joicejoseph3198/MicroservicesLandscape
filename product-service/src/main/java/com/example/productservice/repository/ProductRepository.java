@@ -14,7 +14,7 @@ public interface ProductRepository extends MongoRepository<Product, String> {
 
     Optional<Product> findBySkuCode(String skuCode);
 
-    Boolean existsByBrandAndModelAndConnectivityAndKeySwitchesAndCategory(String brand, String model,
+    Boolean existsByBrandNameAndModelNumberAndConnectivityAndSwitchesAndCategory(String brandName, String modelNumber,
                                                                           Connectivity connectivity,
-                                                                          Switches keySwitches, Category category);
+                                                                          Switches switches, Category category);
 }

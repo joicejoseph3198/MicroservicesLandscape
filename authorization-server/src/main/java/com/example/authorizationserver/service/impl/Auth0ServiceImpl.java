@@ -6,16 +6,18 @@ import com.auth0.json.auth.TokenHolder;
 import com.auth0.net.AuthRequest;
 import com.auth0.net.SignUpRequest;
 import com.example.authorizationserver.config.Auth0Config;
-import com.example.authorizationserver.dto.LoginRequestDTO;
 import com.example.authorizationserver.dto.RegisterRequestDTO;
 import com.example.authorizationserver.service.Auth0Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.HashMap;
 import java.util.Map;
 
+/*
+* Will be of no use since auth0 acts as authorization server.
+* Might turn this into admin service in future
+*/
 @Service
 public class Auth0ServiceImpl implements Auth0Service {
 

@@ -1,6 +1,7 @@
 package com.example.productservice.service.impl;
 
 import com.example.UtilService.dto.ResponseDTO;
+import com.example.productservice.dto.ConfigureProductDTO;
 import com.example.productservice.dto.FilterProductDTO;
 import com.example.productservice.dto.ProductDTO;
 import com.example.productservice.entity.Product;
@@ -50,7 +51,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseDTO<ProductDTO> getProductById(String productId) {
+    public ResponseDTO<ConfigureProductDTO> getProductById(String productId) {
         LOG.info(">>> getProductById");
         // For testing resiliency
         int randomThreshold = RandomGenerator.getDefault().nextInt(1, 100);
@@ -59,12 +60,12 @@ public class ProductServiceImpl implements ProductService {
             throw new UnsupportedOperationException("Something went wrong...[RESILIENCY TESTING]");
         }
 
-        ResponseDTO<ProductDTO> responseDTO =
+        ResponseDTO<ConfigureProductDTO> responseDTO =
                 new ResponseDTO<>(Boolean.TRUE, "Request processed successfully.", null);
         productRepository.findById(productId)
                 .ifPresentOrElse(product -> {
                     LOG.debug("Fetching product({}).", productId);
-                    ProductDTO productDTO = productMapper.toDto(product);
+                    ConfigureProductDTO productDTO = productMapper.toDto(product);
                     responseDTO.setData(productDTO);
                 }, () -> {
                     LOG.debug("Associated product({}) not found.", productId);
@@ -76,31 +77,31 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseDTO<String> createProduct(ProductDTO productDTO) {
+    public ResponseDTO<String> createProduct(ConfigureProductDTO productDTO) {
         LOG.info("received createProduct request");
         ResponseDTO<String> responseDTO =
                 new ResponseDTO<>(Boolean.TRUE, "Product successfully created.", null);
-
         Optional.ofNullable(productDTO)
                 .filter(product ->
-                        !productRepository.existsByBrandAndModelAndConnectivityAndKeySwitchesAndCategory(
-                                product.getBrand(),
-                                product.getModel(),
-                                product.getConnectivity(),
-                                product.getKeySwitches(),
-                                product.getCategory()
+                        !productRepository.existsByBrandNameAndModelNumberAndConnectivityAndSwitchesAndCategory(
+                                product.brandName(),
+                                product.modelNumber(),
+                                product.connectivity(),
+                                product.switches(),
+                                product.category()
                         ))
                 .map(productMapper::toEntity)
                 .ifPresentOrElse(entity -> {
+                    entity.setSkuCode(UUID.randomUUID().toString().substring(0,6));
                     LOG.debug("Creating product ({}).", entity.getSkuCode());
                     productRepository.save(entity);
                 }, () -> {
                     LOG.debug("Unable to create product ({},{},{},{},{}).",
-                            productDTO.getBrand(),
-                            productDTO.getModel(),
-                            productDTO.getConnectivity(),
-                            productDTO.getKeySwitches(),
-                            productDTO.getCategory()
+                            productDTO.brandName(),
+                            productDTO.modelNumber(),
+                            productDTO.connectivity(),
+                            productDTO.switches(),
+                            productDTO.category()
                     );
                     responseDTO.setStatus(Boolean.FALSE);
                     responseDTO.setMessage("Invalid Request or Duplicate Product");
@@ -113,7 +114,7 @@ public class ProductServiceImpl implements ProductService {
     Filters data by dynamically generating query based on the received input
     */
     @Override
-    public Page<ProductDTO> filterData(FilterProductDTO filterProductDTO){
+    public Page<ConfigureProductDTO> filterData(FilterProductDTO filterProductDTO){
         Integer offset = Optional.ofNullable(filterProductDTO.offset()).orElse(0);
         Integer limit = Optional.ofNullable(filterProductDTO.limit()).orElse(10);
         int page = offset / limit;
@@ -126,7 +127,7 @@ public class ProductServiceImpl implements ProductService {
                         addCriteriaToQuery(request,dynamicQuery)
                 );
         List<Product> queryResult = mongoTemplate.find(dynamicQuery, Product.class);
-        List<ProductDTO> productList = productMapper.toDtoList(queryResult);
+        List<ConfigureProductDTO> productList = productMapper.toDtoList(queryResult);
         return PageableExecutionUtils.getPage(productList, pageable,
                 ()-> mongoTemplate.count(dynamicQuery, Product.class));
     }
@@ -200,37 +201,37 @@ public class ProductServiceImpl implements ProductService {
         return responseDTO;
     }
 
-    @Override
-    @Transactional
-    public ResponseDTO<String> insertDummyData() {
-        ResponseDTO<String> responseDTO = new ResponseDTO<>(Boolean.TRUE,"Data insertion complete.",null);
-        generateDummyReviews();
-        return responseDTO;
-    }
+//    @Override
+//    @Transactional
+//    public ResponseDTO<String> insertDummyData() {
+//        ResponseDTO<String> responseDTO = new ResponseDTO<>(Boolean.TRUE,"Data insertion complete.",null);
+//        generateDummyReviews();
+//        return responseDTO;
+//    }
 
-    private void generateDummyReviews(){
-        if(productRepository.findAll().isEmpty()){
-            List<Product> reviewList = IntStream.rangeClosed(1,100)
-                    .mapToObj(i->
-                            new Product(
-                                    String.valueOf(i),
-                                    UUID.randomUUID().toString(),
-                                    faker.commerce().brand(),
-                                    faker.bothify("???###"),
-                                    faker.options().option(Connectivity.class),
-                                    faker.options().option(Switches.class),
-                                    faker.options().option(KeyCaps.class),
-                                    faker.options().option(Layout.class),
-                                    faker.options().option(Category.class),
-                                    faker.lorem().sentence(),
-                                    faker.bothify("#.#x#.#x#.#"),
-                                    faker.random().nextDouble(300,500),
-                                    faker.random().nextDouble(4000,15000),
-                                    faker.internet().url()
-                            ))
-                    .toList();
-            productRepository.saveAll(reviewList);
-        }
-    }
+//    private void generateDummyProducts(){
+//        if(productRepository.findAll().isEmpty()){
+//            List<Product> reviewList = IntStream.rangeClosed(1,100)
+//                    .mapToObj(i->
+//                            new Product(
+//                                    String.valueOf(i),
+//                                    UUID.randomUUID().toString(),
+//                                    faker.commerce().brand(),
+//                                    faker.bothify("???###"),
+//                                    faker.options().option(Connectivity.class),
+//                                    faker.options().option(Switches.class),
+//                                    faker.options().option(KeyCaps.class),
+//                                    faker.options().option(Layout.class),
+//                                    faker.options().option(Category.class),
+//                                    faker.lorem().sentence(),
+//                                    faker.bothify("#.#x#.#x#.#"),
+//                                    faker.random().nextDouble(300,500),
+//                                    faker.random().nextDouble(4000,15000),
+//                                    faker.internet().url()
+//                            ))
+//                    .toList();
+//            productRepository.saveAll(reviewList);
+//        }
+//    }
 
 }

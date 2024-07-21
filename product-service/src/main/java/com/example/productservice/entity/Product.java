@@ -7,28 +7,31 @@ import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
+
 @Document(collection = "products")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@CompoundIndex(name = "switchCategoryBrand", def = "{'keySwitches': 1, 'category': 1,'brand': 1}")
 public class Product{
     @Id
     private String id;
     @Indexed(name = "skuCodeIndex", unique = true)
     private String skuCode;
-    private String brand;
-    @Indexed(name = "modelNameIndex", unique = true)
-    private String model;
+    private String brandName;
+    @Indexed(name = "modelNumberIndex", unique = true)
+    private String modelNumber;
     private Connectivity connectivity;
-    private Switches keySwitches;
+    private Switches switches;
     private KeyCaps keyCaps;
     private Layout layout;
     private Category category;
-    private String description;
-    private String dimension;
-    private Double weight;
-    private Double price;
-    private String imageUrl;
+    private String productDescription;
+    private String productName;
+    private Float weight;
+    private Size size;
+    private Float buyNowPrice;
+    private Float bidStartPrice;
+    private List<String> productImages;
 }

@@ -1,6 +1,7 @@
 package com.example.productcompositeservice.controller;
 
 import com.example.UtilService.dto.ResponseDTO;
+import com.example.productcompositeservice.dto.ConfigureProductDTO;
 import com.example.productcompositeservice.dto.ProductAggregate;
 import com.example.productcompositeservice.service.ProductCompositeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,5 +26,10 @@ public class ProductCompositeController {
     @DeleteMapping(value = "/delete/{productId}")
     public ResponseDTO<String> deleteProductComposite(@PathVariable String productId){
        return productCompositeService.deleteComposite(productId);
+    }
+
+    @PostMapping(value = "/configure/product")
+    public ResponseDTO<String> createProduct(@RequestBody ConfigureProductDTO productDTO){
+        return productCompositeService.createProduct(productDTO);
     }
 }

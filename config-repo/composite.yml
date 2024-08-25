@@ -10,11 +10,11 @@ spring.cloud.stream:
   defaultBinder: kafka
   default.contentType: application/json
   bindings:
-    productDelete-out-0:
+    product-out-0:
       destination: productTopic # topic/exchange name
       producer:
         required-groups: auditGroup # this property when used with Kafka, events are retained in separate topics, even after consumers have processed them.
-    reviewDelete-out-0:
+    review-out-0:
       destination: reviewTopic
       producer:
         required-groups: auditGroup

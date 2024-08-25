@@ -7,10 +7,9 @@ import com.example.productservice.dto.ProductDTO;
 import org.springframework.data.domain.Page;
 
 public interface ProductService {
-    ResponseDTO<ConfigureProductDTO> getProductById(String skuCode);
+    ResponseDTO<ConfigureProductDTO> getProductBySkuCode(String skuCode);
     ResponseDTO<String> createProduct(ConfigureProductDTO productDTO);
     ResponseDTO<String> deleteProduct(String productId);
-//    ResponseDTO<String> insertDummyData();
     Page<ConfigureProductDTO> filterData(FilterProductDTO filterProductDTO);
 
 }

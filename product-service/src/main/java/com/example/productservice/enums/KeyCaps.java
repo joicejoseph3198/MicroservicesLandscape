@@ -6,5 +6,6 @@ public enum KeyCaps {
     DSA,
     CHERRY,
     XDA,
-    MDA
+    MDA,
+    PBT
 }

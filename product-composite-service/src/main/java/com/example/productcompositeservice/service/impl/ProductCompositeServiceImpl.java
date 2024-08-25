@@ -1,6 +1,7 @@
 package com.example.productcompositeservice.service.impl;
 
 import com.example.UtilService.dto.ResponseDTO;
+import com.example.productcompositeservice.dto.ConfigureProductDTO;
 import com.example.productcompositeservice.dto.ProductAggregate;
 import com.example.productcompositeservice.dto.ProductDTO;
 import com.example.productcompositeservice.dto.ReviewDTO;
@@ -45,6 +46,12 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
     public ResponseDTO<String> deleteComposite(String productId){
         // Calls Producer which sends productId or appropriate Event to a Topic
         productCompositeProducer.produceDeleteEvent(productId);
+        return new ResponseDTO<>(Boolean.TRUE,"Request processed successfully.", HttpStatus.ACCEPTED.toString());
+    }
+
+    @Override
+    public ResponseDTO<String> createProduct(ConfigureProductDTO request) {
+        productCompositeProducer.produceCreateProductEvent(request);
         return new ResponseDTO<>(Boolean.TRUE,"Request processed successfully.", HttpStatus.ACCEPTED.toString());
     }
 }

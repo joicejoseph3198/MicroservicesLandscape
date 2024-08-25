@@ -13,19 +13,29 @@ import java.util.function.Consumer;
 @Configuration
 @Slf4j
 public class ReviewConsumer {
-    private static final Logger LOG = LoggerFactory.getLogger(ReviewConsumer.class);
     private final ReviewService reviewService;
     @Autowired
     public ReviewConsumer(ReviewService reviewService){
         this.reviewService = reviewService;
     }
     @Bean
-    public Consumer<Event<String,Object>> deleteMessageProcessor() {
+    public <T> Consumer<Event<String,T>> reviewMessageProcessor() {
         return event -> {
-            LOG.info("Processing event: {}", event.toString());
-            String productId = event.getKey();
-            reviewService.deleteAssociatedReview(productId);
-            LOG.info("Message processing completed.");
+            try{
+                log.info("Processing event.");
+                switch (event.getEventType()){
+                    case DELETE -> {
+                        log.info("Processing event: {}", event.getEventType(), event.getEventCreatedAt());
+                        String productId = event.getKey();
+                        reviewService.deleteAssociatedReview(productId);
+                        log.info("Message processing completed.");
+                    }
+                }
+            }catch (ClassCastException e) {
+                log.error("Event data casting error: {}", e.getMessage());
+            } catch (Exception e) {
+                log.error("Error processing event: {}", e.getMessage(), e);
+            }
         };
     }
 }

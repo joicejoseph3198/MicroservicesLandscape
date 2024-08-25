@@ -34,4 +34,6 @@ public class Product{
     private Float buyNowPrice;
     private Float bidStartPrice;
     private List<String> productImages;
+    private Status status;
+    private Status subStatus;
 }

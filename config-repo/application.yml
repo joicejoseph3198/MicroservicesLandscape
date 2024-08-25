@@ -1,5 +1,6 @@
 app:
   auth-server: localhost
+  config-server: localhost
 
 # applying graceful shutdown, a microservice stops accepting new requests
 # and waits for a configurable time for active requests to complete before

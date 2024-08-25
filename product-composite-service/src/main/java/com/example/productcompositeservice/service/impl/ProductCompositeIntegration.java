@@ -65,7 +65,7 @@ public class ProductCompositeIntegration {
     public ResponseDTO<ProductDTO> getProduct(String productId){
         try {
             LOG.debug("Feign call: getProductById({})",productId);
-            ResponseDTO<ProductDTO> response = productClient.getProductById(productId);
+            ResponseDTO<ProductDTO> response = productClient.getProductBySkuCode(productId);
             LOG.debug("Found associated product for Id: ({})", productId);
             return response;
         } catch (HttpClientErrorException ex) {

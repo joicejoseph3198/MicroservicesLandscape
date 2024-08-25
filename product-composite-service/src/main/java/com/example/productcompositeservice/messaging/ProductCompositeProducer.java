@@ -1,6 +1,7 @@
 package com.example.productcompositeservice.messaging;
 
 import com.example.UtilService.base.Event;
+import com.example.productcompositeservice.dto.ConfigureProductDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +19,8 @@ import java.time.ZonedDateTime;
 public class ProductCompositeProducer {
     private static final Logger LOG = LoggerFactory.getLogger(ProductCompositeProducer.class);
     private final StreamBridge streamBridge;
-    private static final String PRODUCT_DELETE_BINDING = "productDelete-out-0";
-    private static final String REVIEW_DELETE_BINDING = "reviewDelete-out-0";
+    private static final String PRODUCT_BINDING = "product-out-0";
+    private static final String REVIEW_BINDING = "review-out-0";
     @Autowired
     public ProductCompositeProducer(StreamBridge streamBridge){
         this.streamBridge = streamBridge;
@@ -35,12 +36,20 @@ public class ProductCompositeProducer {
         LOG.info("Producing delete event(s) ...");
         Event<String,Object> event = new Event<>(Event.Type.DELETE, productId, null, ZonedDateTime.now());
         Message<Event<String,Object>> message = generateMessage(event);
-        streamBridge.send(PRODUCT_DELETE_BINDING,message);
-        streamBridge.send(REVIEW_DELETE_BINDING,message);
-        LOG.info("Event(s) propagated.");
+        streamBridge.send(PRODUCT_BINDING,message);
+        streamBridge.send(REVIEW_BINDING,message);
+        LOG.info("Event(s) propagated. {}", event.getEventCreatedAt());
     }
 
-    private Message<Event<String,Object>> generateMessage(Event<String,Object> event){
+    public void produceCreateProductEvent(ConfigureProductDTO request){
+        LOG.info("Producing create product event ...");
+        Event<String,ConfigureProductDTO> event = new Event<>(Event.Type.CREATE, request.modelNumber(), request, ZonedDateTime.now());
+        Message<Event<String,ConfigureProductDTO>> message = generateMessage(event);
+        streamBridge.send(PRODUCT_BINDING,message);
+        LOG.info("Event propagated. {}", event.getEventCreatedAt());
+    }
+
+    private <T> Message<Event<String,T>> generateMessage(Event<String,T> event){
         // Could use this separate function in case I need to generate a more complex message
         return MessageBuilder
                 .withPayload(event)

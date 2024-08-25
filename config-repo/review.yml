@@ -20,7 +20,7 @@ spring:
 spring.cloud.stream:
   defaultBinder: kafka
   default.contentType: application/json
-  bindings.deleteMessageProcessor-in-0:
+  bindings.reviewMessageProcessor-in-0:
     destination: reviewTopic
     group: reviewsGroup
     consumer:

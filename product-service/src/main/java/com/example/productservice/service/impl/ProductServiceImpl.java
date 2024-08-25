@@ -3,7 +3,6 @@ package com.example.productservice.service.impl;
 import com.example.UtilService.dto.ResponseDTO;
 import com.example.productservice.dto.ConfigureProductDTO;
 import com.example.productservice.dto.FilterProductDTO;
-import com.example.productservice.dto.ProductDTO;
 import com.example.productservice.entity.Product;
 import com.example.productservice.enums.*;
 import com.example.productservice.mapper.ProductMapper;
@@ -23,17 +22,14 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.random.RandomGenerator;
-import java.util.stream.IntStream;
 
 @Service
 @Slf4j
 public class ProductServiceImpl implements ProductService {
-    private static final Logger LOG = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final ProductMapper productMapper;
     private final ProductRepository productRepository;
     private final Faker faker;
@@ -51,62 +47,51 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ResponseDTO<ConfigureProductDTO> getProductById(String productId) {
-        LOG.info(">>> getProductById");
+    public ResponseDTO<ConfigureProductDTO> getProductBySkuCode(String skuCode) {
+        log.info(">>> getProductById");
         // For testing resiliency
         int randomThreshold = RandomGenerator.getDefault().nextInt(1, 100);
         if (FAULT_PERCENT < randomThreshold) {
-            LOG.info("Bad luck, an error occurred, {} >= {}", FAULT_PERCENT, randomThreshold);
+            log.info("Bad luck, an error occurred, {} >= {}", FAULT_PERCENT, randomThreshold);
             throw new UnsupportedOperationException("Something went wrong...[RESILIENCY TESTING]");
         }
 
         ResponseDTO<ConfigureProductDTO> responseDTO =
                 new ResponseDTO<>(Boolean.TRUE, "Request processed successfully.", null);
-        productRepository.findById(productId)
+        productRepository.findBySkuCode(skuCode)
                 .ifPresentOrElse(product -> {
-                    LOG.debug("Fetching product({}).", productId);
+                    log.debug("Fetching product({}).", skuCode);
                     ConfigureProductDTO productDTO = productMapper.toDto(product);
                     responseDTO.setData(productDTO);
                 }, () -> {
-                    LOG.debug("Associated product({}) not found.", productId);
+                    log.debug("Associated product({}) not found.", skuCode);
                     responseDTO.setStatus(Boolean.FALSE);
                     responseDTO.setMessage("No product with the associated productId present.");
                 });
-        LOG.info("<<< getProductById");
+        log.info("<<< getProductById");
         return responseDTO;
     }
 
     @Override
     public ResponseDTO<String> createProduct(ConfigureProductDTO productDTO) {
-        LOG.info("received createProduct request");
+        log.info("received createProduct request");
         ResponseDTO<String> responseDTO =
                 new ResponseDTO<>(Boolean.TRUE, "Product successfully created.", null);
         Optional.ofNullable(productDTO)
                 .filter(product ->
-                        !productRepository.existsByBrandNameAndModelNumberAndConnectivityAndSwitchesAndCategory(
-                                product.brandName(),
-                                product.modelNumber(),
-                                product.connectivity(),
-                                product.switches(),
-                                product.category()
-                        ))
+                        !productRepository.existsByModelNumber(product.modelNumber()))
                 .map(productMapper::toEntity)
                 .ifPresentOrElse(entity -> {
                     entity.setSkuCode(UUID.randomUUID().toString().substring(0,6));
-                    LOG.debug("Creating product ({}).", entity.getSkuCode());
+                    entity.setStatus(Status.UNPUBLISHED);
+                    log.debug("Creating product ({},{}).", entity.getSkuCode() , entity.getStatus());
                     productRepository.save(entity);
                 }, () -> {
-                    LOG.debug("Unable to create product ({},{},{},{},{}).",
-                            productDTO.brandName(),
-                            productDTO.modelNumber(),
-                            productDTO.connectivity(),
-                            productDTO.switches(),
-                            productDTO.category()
-                    );
+                    log.debug("Unable to create product ({}).", productDTO.modelNumber());
                     responseDTO.setStatus(Boolean.FALSE);
                     responseDTO.setMessage("Invalid Request or Duplicate Product");
                 });
-        LOG.info("finished processing createProduct request");
+        log.info("finished processing createProduct request");
         return responseDTO;
     }
 
@@ -136,7 +121,7 @@ public class ProductServiceImpl implements ProductService {
     creates criteria based on input fields and their values, and adds them to the provided query (givenQuery)
     */
     private void addCriteriaToQuery(FilterProductDTO filterProductDTO, Query givenQuery){
-        LOG.info("constructing queries for filtering.");
+        log.info("constructing queries for filtering.");
         List<Criteria> andCriteriaList = new ArrayList<>();
 
         // Create BETWEEN query for price
@@ -174,11 +159,10 @@ public class ProductServiceImpl implements ProductService {
             }
             givenQuery.with(sort);
         }
-
         if(!CollectionUtils.isEmpty(andCriteriaList)){
             givenQuery.addCriteria(new Criteria().andOperator(andCriteriaList));
         }
-        LOG.info("finished constructing queries.");
+        log.info("finished constructing queries.");
     }
 
     @Override
@@ -187,12 +171,12 @@ public class ProductServiceImpl implements ProductService {
                 new ResponseDTO<>(Boolean.TRUE, "Request processed successfully.", null);
         productRepository.findById(productId).ifPresentOrElse(
                 product -> {
-                    LOG.debug("Deleting product (Id: {}).", productId);
+                    log.debug("Deleting product (Id: {}).", productId);
                     productRepository.deleteById(productId);
                     responseDTO.setData("Deleted product ("+productId+").");
                 },
                 ()->{
-                    LOG.debug("Product not found (Id: {}).", productId);
+                    log.debug("Product not found (Id: {}).", productId);
                     responseDTO.setStatus(Boolean.FALSE);
                     responseDTO.setMessage("Request Failed");
                     responseDTO.setData("Associated product couldn't be found.");
@@ -200,38 +184,5 @@ public class ProductServiceImpl implements ProductService {
         );
         return responseDTO;
     }
-
-//    @Override
-//    @Transactional
-//    public ResponseDTO<String> insertDummyData() {
-//        ResponseDTO<String> responseDTO = new ResponseDTO<>(Boolean.TRUE,"Data insertion complete.",null);
-//        generateDummyReviews();
-//        return responseDTO;
-//    }
-
-//    private void generateDummyProducts(){
-//        if(productRepository.findAll().isEmpty()){
-//            List<Product> reviewList = IntStream.rangeClosed(1,100)
-//                    .mapToObj(i->
-//                            new Product(
-//                                    String.valueOf(i),
-//                                    UUID.randomUUID().toString(),
-//                                    faker.commerce().brand(),
-//                                    faker.bothify("???###"),
-//                                    faker.options().option(Connectivity.class),
-//                                    faker.options().option(Switches.class),
-//                                    faker.options().option(KeyCaps.class),
-//                                    faker.options().option(Layout.class),
-//                                    faker.options().option(Category.class),
-//                                    faker.lorem().sentence(),
-//                                    faker.bothify("#.#x#.#x#.#"),
-//                                    faker.random().nextDouble(300,500),
-//                                    faker.random().nextDouble(4000,15000),
-//                                    faker.internet().url()
-//                            ))
-//                    .toList();
-//            productRepository.saveAll(reviewList);
-//        }
-//    }
 
 }

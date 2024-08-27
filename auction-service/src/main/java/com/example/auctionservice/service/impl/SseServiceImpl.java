@@ -1,11 +1,13 @@
 package com.example.auctionservice.service.impl;
 
+import com.example.auctionservice.enums.BidEventType;
 import com.example.auctionservice.service.SseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,9 +22,8 @@ public class SseServiceImpl implements SseService {
         // Ensure the auction ID exists in the map
         auctionEmitters.computeIfAbsent(auctionId, k -> new ConcurrentHashMap<>());
         SseEmitter emitter = new SseEmitter(600000L); // 10 min
-        emitter.onCompletion(() -> removeClient(auctionId, clientId));
+        emitter.onCompletion(() -> removeClient(auctionId, clientId)); // clientId here refers to user's email
         emitter.onTimeout(() -> removeClient(auctionId, clientId));
-
         auctionEmitters.get(auctionId).put(clientId, emitter);
         return emitter;
     }
@@ -39,34 +40,52 @@ public class SseServiceImpl implements SseService {
     }
 
     @Override
-    public <T> void notifyClient(Long auctionId,String clientId, T data) {
-        SseEmitter emitter = getEmitter(auctionId, clientId);
-        if (emitter != null) {
-            try {
-                emitter.send(SseEmitter.event().data(data));
-            } catch (IOException e) {
-                removeClient(auctionId, clientId);
-            }
-        }
+    public <T> void notifyBidFailure(Long auctionId, String bidderId, T message) {
+        sendNotificationToClient(auctionId, bidderId, BidEventType.BID_FAILED, message);
     }
 
     @Override
-    public <T> void notifyAllClients(Long auctionId,T data) {
-        Map<String, SseEmitter> emitters = auctionEmitters.get(auctionId);
-        if (emitters != null) {
-            for (Map.Entry<String, SseEmitter> entry : emitters.entrySet()) {
+    public void notifyNewHighestBid(Long auctionId, String winningBidderId, BigDecimal newHighestBid) {
+        // Notify the winning bidder
+        sendNotificationToClient(auctionId, winningBidderId, BidEventType.BID_ACCEPTED,
+                "Your bid of " + newHighestBid + " is now the highest bid.");
+
+        // Notify all all participants
+        sendNotificationToAll(auctionId, winningBidderId, BidEventType.NEW_HIGHEST_BID,
+                "New highest bid: " + newHighestBid);
+    }
+
+    private <T> void sendNotificationToClient(Long auctionId, String clientId, BidEventType eventType, T message) {
+        Map<String, SseEmitter> auctionMap = auctionEmitters.get(auctionId);
+        if (auctionMap != null) {
+            SseEmitter emitter = auctionMap.get(clientId);
+            if (emitter != null) {
                 try {
-                    entry.getValue().send(SseEmitter.event().data(data));
+                    emitter.send(SseEmitter.event()
+                            .name(eventType.name())
+                            .data(message));
                 } catch (IOException e) {
-                    emitters.remove(entry.getKey());
+                    removeClient(auctionId, clientId);
                 }
             }
         }
     }
 
-    // Get the emitter for a specific client
-    private SseEmitter getEmitter(Long auctionId, String clientId) {
-        Map<String, SseEmitter> emitters = auctionEmitters.get(auctionId);
-        return emitters != null ? emitters.get(clientId) : null;
+    private <T> void sendNotificationToAll(Long auctionId, String excludeClientId, BidEventType eventType, T message) {
+        Map<String, SseEmitter> auctionMap = auctionEmitters.get(auctionId);
+        if (auctionMap != null) {
+            auctionMap.forEach((clientId, emitter) -> {
+                if (!clientId.equals(excludeClientId)) {
+                    try {
+                        emitter.send(SseEmitter.event()
+                                .name(eventType.name())
+                                .data(message));
+                    } catch (IOException e) {
+                        removeClient(auctionId, clientId);
+                    }
+                }
+            });
+        }
     }
+
 }

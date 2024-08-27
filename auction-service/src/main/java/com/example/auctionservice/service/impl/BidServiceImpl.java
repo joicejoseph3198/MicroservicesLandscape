@@ -4,7 +4,7 @@ import com.example.UtilService.dto.ResponseDTO;
 import com.example.auctionservice.dto.BidRequestDTO;
 import com.example.auctionservice.entity.Auction;
 import com.example.auctionservice.entity.Bid;
-import com.example.auctionservice.enums.Status;
+import com.example.auctionservice.enums.AuctionStatus;
 import com.example.auctionservice.messaging.BidProducer;
 import com.example.auctionservice.repository.AuctionRepository;
 import com.example.auctionservice.repository.BidRepository;
@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Optional;
@@ -39,7 +38,7 @@ public class BidServiceImpl implements BidService {
     private ResponseDTO<String> validateBid(BidRequestDTO bidRequestDTO){
         ResponseDTO<String> response = new ResponseDTO<>(Boolean.FALSE,"Bid could not be placed",null);
         // Introduce redis to make this API faster
-        Optional<Auction> associatedAuction = auctionRepository.findAuctionByIdAndStatus(bidRequestDTO.auctionId(), Status.LIVE.name());
+        Optional<Auction> associatedAuction = auctionRepository.findAuctionByIdAndStatus(bidRequestDTO.auctionId(), AuctionStatus.LIVE.name());
         if(associatedAuction.isEmpty()){
             response.setData("No associated LIVE auction was found.");
             log.info("Auction not found for id: {}", bidRequestDTO.auctionId());
@@ -72,7 +71,7 @@ public class BidServiceImpl implements BidService {
 
     private Auction auditBid(BidRequestDTO bidRequestDTO){
         // Replace with redis
-        Optional<Auction> auction = auctionRepository.findAuctionByIdAndStatus(bidRequestDTO.auctionId(), Status.LIVE.name());
+        Optional<Auction> auction = auctionRepository.findAuctionByIdAndStatus(bidRequestDTO.auctionId(), AuctionStatus.LIVE.name());
         if(auction.isPresent()){
             log.info("Saving attempted bid for auction: {}, by user: {}", bidRequestDTO.auctionId(),bidRequestDTO.user());
             Auction associatedAuction = auction.get();

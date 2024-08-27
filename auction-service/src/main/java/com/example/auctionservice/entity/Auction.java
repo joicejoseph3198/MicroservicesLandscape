@@ -1,6 +1,6 @@
 package com.example.auctionservice.entity;
 
-import com.example.auctionservice.enums.Status;
+import com.example.auctionservice.enums.AuctionStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,6 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.List;
 
 @Entity
@@ -35,7 +34,7 @@ public class Auction extends Auditable {
     @Column(scale = 2)
     private BigDecimal buyNowPrice;
     @Enumerated(EnumType.STRING)
-    private Status status = Status.SCHEDULED;
+    private AuctionStatus auctionStatus = AuctionStatus.SCHEDULED;
     @Version
     private Long version;
 }

@@ -1,6 +1,6 @@
 package com.example.auctionservice.enums;
 
-public enum Status {
+public enum AuctionStatus {
     SCHEDULED,
     LIVE,
     OVER

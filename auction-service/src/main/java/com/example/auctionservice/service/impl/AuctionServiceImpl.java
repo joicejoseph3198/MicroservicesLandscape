@@ -3,7 +3,7 @@ package com.example.auctionservice.service.impl;
 import com.example.UtilService.dto.ResponseDTO;
 import com.example.auctionservice.dto.AuctionScheduleDTO;
 import com.example.auctionservice.entity.Auction;
-import com.example.auctionservice.enums.Status;
+import com.example.auctionservice.enums.AuctionStatus;
 import com.example.auctionservice.mapper.AuctionMapper;
 import com.example.auctionservice.repository.AuctionRepository;
 import com.example.auctionservice.service.AuctionService;
@@ -78,16 +78,16 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
-    public ResponseDTO<String> updateStatus(Long auctionId, Status status) {
+    public ResponseDTO<String> updateStatus(Long auctionId, AuctionStatus auctionStatus) {
         ResponseDTO<String> responseDTO = new ResponseDTO<>(Boolean.FALSE,"Request failed.",null);
         Optional<Auction> auction = auctionRepository.findById(auctionId);
         auction.ifPresentOrElse(auctionData->{
-            auctionData.setStatus(status);
+            auctionData.setAuctionStatus(auctionStatus);
             auctionRepository.save(auctionData);
             responseDTO.setStatus(Boolean.TRUE);
             responseDTO.setMessage("Request processed.");
-            responseDTO.setData("Status updated to "+ status);
-            log.info("Updated status of auction: {}, to {}", auctionId,status);
+            responseDTO.setData("Status updated to " + auctionStatus);
+            log.info("Updated status of auction: {}, to {}", auctionId, auctionStatus);
         },()->{
             responseDTO.setData("Auction not found.");
         });
@@ -111,7 +111,7 @@ public class AuctionServiceImpl implements AuctionService {
                 .toList();
 
         if(!CollectionUtils.isEmpty(liveAuctionList)){
-            int count = auctionRepository.bulkUpdateStatus(liveAuctionList, Status.LIVE.name());
+            int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.LIVE.name());
             log.info("{} auction(s) are now LIVE", count);
         }
         log.info("No auctions(s) are scheduled to START, {}", getStartTime());
@@ -134,7 +134,7 @@ public class AuctionServiceImpl implements AuctionService {
                 .toList();
 
         if(!CollectionUtils.isEmpty(liveAuctionList)){
-            int count = auctionRepository.bulkUpdateStatus(liveAuctionList, Status.OVER.name());
+            int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.OVER.name());
             log.info("{} auction(s) have now ENDED", count);
         }
         log.info("No auctions(s) are scheduled to END, {}", getStartTime());

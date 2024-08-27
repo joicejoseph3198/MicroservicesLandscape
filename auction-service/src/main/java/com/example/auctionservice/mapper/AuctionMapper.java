@@ -8,8 +8,6 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Mapper(componentModel = "spring")
@@ -20,12 +18,11 @@ public interface AuctionMapper extends BaseMapper<Auction, AuctionScheduleDTO> {
     @Override
     Auction toEntity(AuctionScheduleDTO dto);
 
-    default ZonedDateTime mapStringToZonedDateTime(String dateTimeString) {
+    default LocalDateTime mapStringToZonedDateTime(String dateTimeString) {
         // Define the formatter to match the input string pattern
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
         // Parse the string into a LocalDateTime
-        LocalDateTime localDateTime = LocalDateTime.parse(dateTimeString, formatter);
-        // Convert the LocalDateTime to ZonedDateTime using the system default timezone
-        return ZonedDateTime.of(localDateTime, ZoneId.systemDefault());
+        return LocalDateTime.parse(dateTimeString, formatter);
+
     }
 }

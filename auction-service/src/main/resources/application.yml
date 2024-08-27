@@ -9,7 +9,7 @@ spring:
     username: joice
     password: password
   jpa:
-    database-platform: org.hibernate.dialect.MySQL8Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
 
@@ -32,7 +32,7 @@ spring.cloud.stream:
         required-groups: auditGroup
 
 spring.cloud.stream.kafka.binder:
-  brokers: kafka
+  brokers: localhost
   defaultBrokerPort: 9092
 #spring.cloud.stream.kafka.binder:
 #  brokers: kafka
@@ -42,3 +42,28 @@ spring.cloud.stream.kafka.binder:
 springdoc.api-docs.path: /api-docs
 springdoc.swagger-ui.path: /swagger-ui.html
 
+---
+spring.config.activate.on-profile: docker
+
+server.port: 8084
+
+app.eureka-server: auction
+
+spring:
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mysql:3306/auctionbiddb
+    username: joice
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+spring.cloud.stream.kafka.binder.brokers: kafka
+
+## To be removed in deployment
+management.zipkin.tracing.endpoint: http://zipkin:9411/api/v2/spans
+management.tracing.sampling.probability: 1.0
+logging.pattern.level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+spring.codec.log-request-details: true

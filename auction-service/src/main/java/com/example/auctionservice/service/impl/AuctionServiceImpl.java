@@ -7,11 +7,17 @@ import com.example.auctionservice.enums.Status;
 import com.example.auctionservice.mapper.AuctionMapper;
 import com.example.auctionservice.repository.AuctionRepository;
 import com.example.auctionservice.service.AuctionService;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -24,6 +30,16 @@ public class AuctionServiceImpl implements AuctionService {
     public AuctionServiceImpl(AuctionRepository auctionRepository, AuctionMapper auctionMapper) {
         this.auctionRepository = auctionRepository;
         this.auctionMapper = auctionMapper;
+    }
+
+    // Helper functions
+    private String getStartTime(){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return LocalDateTime.now(ZoneId.of("Asia/Kolkata")).withSecond(0).withNano(0).format(formatter);
+    }
+    private String getEndTime(){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return LocalDateTime.now(ZoneId.of("Asia/Kolkata")).withSecond(0).withNano(0).plusSeconds(59).format(formatter);
     }
 
     @Override
@@ -76,5 +92,51 @@ public class AuctionServiceImpl implements AuctionService {
             responseDTO.setData("Auction not found.");
         });
         return responseDTO;
+    }
+
+    @Override
+    @Transactional
+    @Scheduled(cron = "0 * * * * *")
+    public void startScheduledAuction() {
+        List<Auction> auctionList = auctionRepository.findByStartTimeBetweenAndActiveTrue(
+                getStartTime(),
+                getEndTime()
+        );
+
+        List<Long> liveAuctionList = Optional.ofNullable(auctionList)
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(Objects::nonNull)
+                .map(Auction::getId)
+                .toList();
+
+        if(!CollectionUtils.isEmpty(liveAuctionList)){
+            int count = auctionRepository.bulkUpdateStatus(liveAuctionList, Status.LIVE.name());
+            log.info("{} auction(s) are now LIVE", count);
+        }
+        log.info("No auctions(s) are scheduled to START, {}", getStartTime());
+    }
+
+    @Override
+    @Transactional
+    @Scheduled(cron = "0 * * * * *")
+    public void endScheduledAuction() {
+        List<Auction> auctionList = auctionRepository.findByEndTimeBetweenAndActiveTrue(
+                getStartTime(),
+                getEndTime()
+        );
+
+        List<Long> liveAuctionList = Optional.ofNullable(auctionList)
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(Objects::nonNull)
+                .map(Auction::getId)
+                .toList();
+
+        if(!CollectionUtils.isEmpty(liveAuctionList)){
+            int count = auctionRepository.bulkUpdateStatus(liveAuctionList, Status.OVER.name());
+            log.info("{} auction(s) have now ENDED", count);
+        }
+        log.info("No auctions(s) are scheduled to END, {}", getStartTime());
     }
 }

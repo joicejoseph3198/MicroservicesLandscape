@@ -15,7 +15,7 @@ import java.time.ZonedDateTime;
 @Component
 public class BidProducer {
     private final StreamBridge streamBridge;
-    private static final String BID_BINDING = "placeBid-out-0";
+    private static final String BID_BINDING = "bidPlace-out-0";
 
     @Autowired
     public BidProducer(StreamBridge streamBridge) {

@@ -9,4 +9,6 @@ public interface AuctionService {
     ResponseDTO<String> scheduleAuction(AuctionScheduleDTO request);
     ResponseDTO<Auction> findAuctionBySkuCode(String skuCode);
     ResponseDTO<String> updateStatus(Long auctionId, Status status);
+    void startScheduledAuction();
+    void endScheduledAuction();
 }

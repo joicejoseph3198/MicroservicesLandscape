@@ -40,5 +40,4 @@ public class AuctionController {
         return auctionService.updateStatus(auctionId,status);
     }
 
-
 }

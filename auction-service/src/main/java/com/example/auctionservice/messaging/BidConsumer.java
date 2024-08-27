@@ -1,7 +1,6 @@
 package com.example.auctionservice.messaging;
 
 import com.example.UtilService.base.Event;
-import com.example.UtilService.dto.ResponseDTO;
 import com.example.auctionservice.dto.BidRequestDTO;
 import com.example.auctionservice.service.BidService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.ZonedDateTime;
 import java.util.function.Consumer;
 
 @Slf4j
@@ -41,8 +39,10 @@ public class BidConsumer {
                 }
             }catch (ClassCastException e) {
                 log.error("Event data casting error: {}", e.getMessage());
+                throw e;
             } catch (Exception e) {
-                log.error("Error processing event: {}", e.getMessage(), e);
+                log.error("Error processing event: {}", e.getMessage());
+                throw e;
             }
         };
     }

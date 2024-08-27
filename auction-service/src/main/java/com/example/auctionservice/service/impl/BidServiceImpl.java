@@ -1,6 +1,5 @@
 package com.example.auctionservice.service.impl;
 
-import com.example.UtilService.base.Event;
 import com.example.UtilService.dto.ResponseDTO;
 import com.example.auctionservice.dto.BidRequestDTO;
 import com.example.auctionservice.entity.Auction;
@@ -10,15 +9,14 @@ import com.example.auctionservice.messaging.BidProducer;
 import com.example.auctionservice.repository.AuctionRepository;
 import com.example.auctionservice.repository.BidRepository;
 import com.example.auctionservice.service.BidService;
+import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
-import org.springframework.messaging.Message;
-import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 
-import java.time.ZonedDateTime;
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -41,7 +39,7 @@ public class BidServiceImpl implements BidService {
     private ResponseDTO<String> validateBid(BidRequestDTO bidRequestDTO){
         ResponseDTO<String> response = new ResponseDTO<>(Boolean.FALSE,"Bid could not be placed",null);
         // Introduce redis to make this API faster
-        Optional<Auction> associatedAuction = auctionRepository.findAuctionByIdAndStatus(bidRequestDTO.auctionId(), Status.LIVE);
+        Optional<Auction> associatedAuction = auctionRepository.findAuctionByIdAndStatus(bidRequestDTO.auctionId(), Status.LIVE.name());
         if(associatedAuction.isEmpty()){
             response.setData("No associated LIVE auction was found.");
             log.info("Auction not found for id: {}", bidRequestDTO.auctionId());
@@ -49,7 +47,7 @@ public class BidServiceImpl implements BidService {
         }
         Auction auction = associatedAuction.get();
         if(( bidRequestDTO.amount().compareTo(auction.getBidStartPrice()) <= 0 ) ||
-           ( bidRequestDTO.amount().compareTo(auction.getHighestBid()) <= 0 )){
+           (bidRequestDTO.amount().compareTo(Optional.ofNullable(auction.getHighestBid()).orElse(BigDecimal.ZERO)) <= 0 )){
             log.info("Invalid bid amount: {}", bidRequestDTO.amount());
             response.setData("Bid amount is not high enough");
             return  response;
@@ -60,7 +58,7 @@ public class BidServiceImpl implements BidService {
     @Override
     public ResponseDTO<String> placeBid(BidRequestDTO bidRequestDTO) {
         ResponseDTO<String> response = validateBid(bidRequestDTO);
-        if(!response.getData().isEmpty()){
+        if(!StringUtils.isEmpty(response.getData())){
             return response;
         }
         try {
@@ -74,7 +72,7 @@ public class BidServiceImpl implements BidService {
 
     private Auction auditBid(BidRequestDTO bidRequestDTO){
         // Replace with redis
-        Optional<Auction> auction = auctionRepository.findAuctionByIdAndStatus(bidRequestDTO.auctionId(), Status.LIVE);
+        Optional<Auction> auction = auctionRepository.findAuctionByIdAndStatus(bidRequestDTO.auctionId(), Status.LIVE.name());
         if(auction.isPresent()){
             log.info("Saving attempted bid for auction: {}, by user: {}", bidRequestDTO.auctionId(),bidRequestDTO.user());
             Auction associatedAuction = auction.get();
@@ -96,17 +94,20 @@ public class BidServiceImpl implements BidService {
     public ResponseDTO<String> processBid(BidRequestDTO bidRequest) {
         ResponseDTO<String> responseDTO = validateBid(bidRequest);
         Auction auction = auditBid(bidRequest);
-        if(!responseDTO.getData().isEmpty()){
+        if(!StringUtils.isEmpty(responseDTO.getData())){
+            // trigger SSE to notify the user about the failed bid
             return responseDTO;
         }
         if(Objects.nonNull(auction)){
             auction.setHighestBid(bidRequest.amount());
+            auction.setHighestBidder(bidRequest.user());
             // update redis as well
             auctionRepository.save(auction);
         }
+        log.info("New bid of amount {} by {}",bidRequest.amount(), bidRequest.user());
         // trigger SSE to the client, and notify all participants
-
-        return null;
+        responseDTO.setData("Bid accepted. New highest bid: "+ auction.getHighestBid());
+        return responseDTO;
     }
 
 }

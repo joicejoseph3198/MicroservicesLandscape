@@ -48,6 +48,22 @@ services:
       - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
       - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
 
+  auction:
+    container_name: auction
+    image: microservice-landscape/auction
+    build: ./auction-service
+    mem_limit: 512M
+    ports:
+      - "8084:8084"
+    depends_on:
+      - mysql
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+#      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
+#      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
+    networks:
+      - kind
+
   mongodb:
     container_name: mongo
     image: mongo:6.0.4
@@ -143,7 +159,7 @@ services:
     image: provectuslabs/kafka-ui:latest
     mem_limit: 512m
     ports:
-      - "8085:8080"
+      - "8885:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
@@ -240,6 +256,7 @@ services:
       - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
     networks:
       - kind
+
 volumes:
   sqldata:
   sqldata-2:

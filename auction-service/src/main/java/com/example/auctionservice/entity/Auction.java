@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -22,16 +23,19 @@ public class Auction extends Auditable {
     private Long id;
     @Column(nullable = false)
     private String productSkuCode;
-    private ZonedDateTime startTime;
-    private ZonedDateTime endTime;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
     @OneToMany(mappedBy = "auction")
     private List<Bid> bids;
     @Column(scale = 2)
     private BigDecimal highestBid;
+    private String highestBidder;
     @Column(scale = 2)
     private BigDecimal bidStartPrice;
     @Column(scale = 2)
     private BigDecimal buyNowPrice;
     @Enumerated(EnumType.STRING)
     private Status status = Status.SCHEDULED;
+    @Version
+    private Long version;
 }

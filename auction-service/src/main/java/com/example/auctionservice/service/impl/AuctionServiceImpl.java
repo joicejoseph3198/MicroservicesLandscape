@@ -135,7 +135,7 @@ public class AuctionServiceImpl implements AuctionService {
                 .toList();
 
         if(!CollectionUtils.isEmpty(liveAuctionList)){
-            int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.LIVE.name());
+            int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.LIVE);
             log.info("{} auction(s) are now LIVE", count);
         }
     }
@@ -157,7 +157,7 @@ public class AuctionServiceImpl implements AuctionService {
                 .toList();
 
         if(!CollectionUtils.isEmpty(liveAuctionList)){
-            int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.OVER.name());
+            int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.OVER);
             log.info("{} auction(s) have now ENDED", count);
         }
     }

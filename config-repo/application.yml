@@ -27,10 +27,9 @@ spring.codec.log-request-details: true
 logging:
   level:
     root: ERROR
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    org.springframework.http: DEBUG
+    org.springframework.web: INFO
+    com.example: INFO
+    org.hibernate: ERROR
 
 springdoc.api-docs.path: /api-docs
 springdoc.swagger-ui.path: /swagger-ui.html

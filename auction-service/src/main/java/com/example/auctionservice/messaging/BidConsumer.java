@@ -8,11 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
 import java.util.function.Consumer;
 
-@Slf4j
 @Configuration
+@Slf4j
 public class BidConsumer {
     private final BidService bidService;
     private final ObjectMapper objectMapper;
@@ -24,9 +23,10 @@ public class BidConsumer {
     }
 
     @Bean
-    public <K,T> Consumer<Event<K,T>> bidProcessor() {
+    public <T> Consumer<Event<String,T>> bidProcessor() {
         return event -> {
             try {
+                log.info("Processing event.");
                 switch (event.getEventType()) {
                     case CREATE -> {
                         log.info("Processing event: {}, {}, {}", event.getEventType(), event.getKey(), event.getEventCreatedAt());

@@ -1,6 +1,8 @@
 package com.example.auctionservice.repository;
 
 import com.example.auctionservice.entity.Auction;
+import com.example.auctionservice.enums.AuctionStatus;
+import com.example.auctionservice.enums.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -16,7 +18,7 @@ public interface AuctionRepository extends JpaRepository<Auction,Long> {
             nativeQuery = true,
             value = "SELECT * FROM auction " +
                     "WHERE id =?1 " +
-                    "AND status =?2 " +
+                    "AND auction_status = ?2 " +
                     "AND active = true")
     Optional<Auction> findAuctionByIdAndStatus(Long id, String status);
 
@@ -37,17 +39,17 @@ public interface AuctionRepository extends JpaRepository<Auction,Long> {
     @Query(
             nativeQuery = true,
             value = "UPDATE auction " +
-                    "SET auction_status = ?2 and deleted = true" +
+                    "SET auction_status = ?2, deleted = true " +
                     "WHERE id IN (?1) AND active = true"
 
     )
-    int bulkUpdateStatus(List<Long> ids, String status);
+    int bulkUpdateStatus(List<Long> ids, AuctionStatus status);
 
     @Modifying
     @Query(
             nativeQuery = true,
             value = "UPDATE auction " +
-                    "SET deleted = true and active = false and auction_status = OVER" +
+                    "SET deleted = true and active = false and auction_status = OVER " +
                     "WHERE id IN (?1) AND active = true"
 
     )

@@ -10,37 +10,38 @@ spring:
     hibernate:
       ddl-auto: update
 
+management.endpoint.health.show-details: ALWAYS
+
+spring.cloud.function:
+  definition: bidProcessor
 spring.cloud.stream:
   defaultBinder: kafka
   default.contentType: application/json
-  bindings:
-    bidProcessor-in-0:
-      destination: bidTopic
-      group: bidGroup
-      consumer:
-        enableDlq: true
-        maxAttempts: 3
-        backOffInitialInterval: 500
-        backOffMaxInterval: 3000
-        backOffMultiplier: 2.0
-    bidPlace-out-0:
-      destination: bidTopic
-      producer:
-        required-groups: auditGroup
+  bindings.bidProcessor-in-0:
+    destination: bidTopic
+    group: bidsGroup
+    consumer:
+      enableDlq: true
+      maxAttempts: 3
+      backOffInitialInterval: 500
+      backOffMaxInterval: 1000
+      backOffMultiplier: 2
+  bindings.bidPlace-out-0:
+    destination: bidTopic
+    producer:
+      required-groups: auditGroup
 
+spring.cloud.stream.kafka.binder.enableObservation: true
 spring.cloud.stream.kafka.binder:
   brokers: localhost
   defaultBrokerPort: 9092
-
 
 springdoc.api-docs.path: /api-docs
 springdoc.swagger-ui.path: /swagger-ui.html
 
 ---
 spring.config.activate.on-profile: docker
-
 server.port: 8084
-
 spring:
   datasource:
     driverClassName: com.mysql.cj.jdbc.Driver
@@ -51,5 +52,11 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
-
+logging:
+  level:
+    root: ERROR
+    org.springframework.cloud.gateway: ERROR
+    org.springframework.security: INFO
+    org.springframework.web: INFO
+    org.springframework.http: INFO
 spring.cloud.stream.kafka.binder.brokers: kafka

@@ -106,8 +106,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${AUTH_ISSUER_URI}
-          audience: ${AUTH_AUDIENCE}
+          issuer-uri: ${AUTH_ISSUER_URI:https://localhost:30443/auth/public/login}
+          audience: ${AUTH_AUDIENCE:https://dev-mqzx0ckhfl41mzxd.jp.auth0.com/}
 ---
 spring.config.activate.on-profile: docker
 

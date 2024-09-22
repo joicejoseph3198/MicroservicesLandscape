@@ -52,7 +52,7 @@ services:
     container_name: auction
     image: microservice-landscape/auction
     build: ./auction-service
-    mem_limit: 512M
+    mem_limit: 1024m
     ports:
       - "8084:8084"
     depends_on:

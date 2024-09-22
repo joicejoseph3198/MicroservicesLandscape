@@ -8,4 +8,5 @@ public interface SseService {
     SseEmitter registerClient(Long auctionId, String clientId);
     <T> void notifyBidFailure(Long auctionId, String bidderId, T data);
     void notifyNewHighestBid(Long auctionId, String winningBidderId, BigDecimal newHighestBid);
+    void notifyAuctionOver(Long auctionId, String winningBidder);
 }

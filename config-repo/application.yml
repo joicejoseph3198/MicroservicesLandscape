@@ -32,6 +32,8 @@ logging:
     org.springframework.web: DEBUG
     org.springframework.http: DEBUG
 
+springdoc.api-docs.path: /api-docs
+springdoc.swagger-ui.path: /swagger-ui.html
 ---
 spring.config.activate.on-profile: docker
 

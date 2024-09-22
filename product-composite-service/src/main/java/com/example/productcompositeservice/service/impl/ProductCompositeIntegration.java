@@ -60,7 +60,6 @@ public class ProductCompositeIntegration {
     }
 
     @Retry(name = "product")
-//    @TimeLimiter(name = "product")
     @CircuitBreaker(name ="product", fallbackMethod = "getProductFallBackValue")
     public ResponseDTO<ProductDTO> getProduct(String productId){
         try {

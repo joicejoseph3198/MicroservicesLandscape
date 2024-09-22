@@ -19,7 +19,7 @@ logging:
     org.springframework.web: ERROR
     com.example: INFO
     org.hibernate: ERROR
-    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+    org.springframework.data.mongodb.core.MongoTemplate: ERROR
 
 spring.cloud.stream:
   defaultBinder: kafka

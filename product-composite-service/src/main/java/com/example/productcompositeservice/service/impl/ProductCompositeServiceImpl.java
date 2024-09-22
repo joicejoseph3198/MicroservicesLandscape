@@ -28,7 +28,7 @@ public class ProductCompositeServiceImpl implements ProductCompositeService {
     @Override
     public ResponseDTO<ProductAggregate> getProductAggregate(String productId) {
         ResponseDTO<ProductAggregate> aggregateResponseDTO = new ResponseDTO<>(Boolean.FALSE, "Couldn't find associated objects", null);
-        ResponseDTO<ProductDTO> resultantProduct = integration.getProduct(productId);
+        ResponseDTO<ProductDTO> resultantProduct =  integration.getProduct(productId);
         ResponseDTO<List<ReviewDTO>> associatedReviews = integration.getReviews(productId);
         ProductAggregate productAggregate = null;
         if(Objects.nonNull(resultantProduct.getData()) && Objects.nonNull(associatedReviews.getData())){

@@ -56,11 +56,13 @@ services:
     ports:
       - "8084:8084"
     depends_on:
+      - config-server
       - mysql
+      - discovery
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-#      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
-#      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
     networks:
       - kind
 

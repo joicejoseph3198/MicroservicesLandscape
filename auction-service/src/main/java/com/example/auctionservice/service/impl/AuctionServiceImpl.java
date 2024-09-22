@@ -1,9 +1,13 @@
 package com.example.auctionservice.service.impl;
 
 import com.example.UtilService.dto.ResponseDTO;
+import com.example.auctionservice.dto.AuctionDetailsDTO;
 import com.example.auctionservice.dto.AuctionScheduleDTO;
 import com.example.auctionservice.entity.Auction;
 import com.example.auctionservice.enums.AuctionStatus;
+import com.example.auctionservice.enums.Status;
+import com.example.auctionservice.feign.ProductClient;
+import com.example.auctionservice.mapper.AuctionDetailsMapper;
 import com.example.auctionservice.mapper.AuctionMapper;
 import com.example.auctionservice.repository.AuctionRepository;
 import com.example.auctionservice.service.AuctionService;
@@ -25,11 +29,15 @@ public class AuctionServiceImpl implements AuctionService {
 
     private final AuctionRepository auctionRepository;
     private final AuctionMapper auctionMapper;
+    private final AuctionDetailsMapper auctionDetailsMapper;
+    private final ProductClient productClient;
 
     @Autowired
-    public AuctionServiceImpl(AuctionRepository auctionRepository, AuctionMapper auctionMapper) {
+    public AuctionServiceImpl(AuctionRepository auctionRepository, AuctionMapper auctionMapper, AuctionDetailsMapper auctionDetailsMapper, ProductClient productClient) {
         this.auctionRepository = auctionRepository;
         this.auctionMapper = auctionMapper;
+        this.auctionDetailsMapper = auctionDetailsMapper;
+        this.productClient = productClient;
     }
 
     // Helper functions
@@ -46,28 +54,46 @@ public class AuctionServiceImpl implements AuctionService {
     public ResponseDTO<String> scheduleAuction(AuctionScheduleDTO request) {
         ResponseDTO<String> response = new ResponseDTO<>(Boolean.FALSE, "Invalid request", null);
         if (request.productSkuCode().isEmpty()) {
-            // Add a call to verify if a product exists
             response.setData("Associated product not found");
             log.info("Auction could not be created for id: {}", request.productSkuCode());
             return response;
         }
         Auction newAuction = auctionMapper.toEntity(request);
-        Auction savedAuction = auctionRepository.save(newAuction);
-        log.info("Auction: {}, scheduled from {}-{}, for product: {}", savedAuction.getId(), savedAuction.getStartTime(),
-                savedAuction.getEndTime(), savedAuction.getProductSkuCode());
-        return new ResponseDTO<>(
-                Boolean.TRUE,
-                "Request processed successfully",
-                "Auction: " + savedAuction.getId() + ",scheduled for product: " + savedAuction.getProductSkuCode());
+        try{
+            productClient.updateProductStatus(request.productSkuCode(), Status.PUBLISHED);
+            Auction savedAuction = auctionRepository.save(newAuction);
+            log.info("Auction: {}, scheduled from {}-{}, for product: {}", savedAuction.getId(), savedAuction.getStartTime(),
+                    savedAuction.getEndTime(), savedAuction.getProductSkuCode().toUpperCase());
+            return new ResponseDTO<>(
+                    Boolean.TRUE,
+                    "Request processed successfully",
+                    "Auction: " + savedAuction.getId() + ", scheduled for product: " + savedAuction.getProductSkuCode().toUpperCase());
+        }catch(Exception e){
+            log.error("Ran into an exception while scheduling auction for product {}", request.productSkuCode().toUpperCase());
+            log.error("Error: {}", e.getMessage());
+            response.setData("Ran into an exception");
+            return response;
+        }
     }
 
     @Override
-    public ResponseDTO<Auction> findAuctionBySkuCode(String skuCode) {
-        ResponseDTO<Auction> responseDTO = new ResponseDTO<>(Boolean.TRUE,"Auction data found.",null);
+    public ResponseDTO<String> endAuction(Long id) {
+        int count = auctionRepository.setDeletedTrueById(id);
+        log.info("{} record(s) were deleted", count);
+        if(count  > 1)
+            return new ResponseDTO<>(Boolean.TRUE, "Record(s) deleted successfully.","Count: "+count);
+        else
+            return new ResponseDTO<>(Boolean.FALSE, "Record deletion failed.",null);
+    }
+
+    @Override
+    public ResponseDTO<AuctionDetailsDTO> findAuctionBySkuCode(String skuCode) {
+        ResponseDTO<AuctionDetailsDTO> responseDTO = new ResponseDTO<>(Boolean.TRUE,"Auction data found.",null);
          auctionRepository.findByProductSkuCode(skuCode).ifPresentOrElse(
                 auction -> {
                     log.info("Auction associated with product: {} found.", skuCode);
-                    responseDTO.setData(auction);
+                    AuctionDetailsDTO auctionDetailsDTO = auctionDetailsMapper.toDto(auction);
+                    responseDTO.setData(auctionDetailsDTO);
                 },()->{
                     log.info("Associated auction not found for product: {}.",skuCode);
                     responseDTO.setStatus(Boolean.FALSE);
@@ -88,9 +114,7 @@ public class AuctionServiceImpl implements AuctionService {
             responseDTO.setMessage("Request processed.");
             responseDTO.setData("Status updated to " + auctionStatus);
             log.info("Updated status of auction: {}, to {}", auctionId, auctionStatus);
-        },()->{
-            responseDTO.setData("Auction not found.");
-        });
+        },()->responseDTO.setData("Auction not found."));
         return responseDTO;
     }
 
@@ -114,7 +138,6 @@ public class AuctionServiceImpl implements AuctionService {
             int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.LIVE.name());
             log.info("{} auction(s) are now LIVE", count);
         }
-        log.info("No auctions(s) are scheduled to START, {}", getStartTime());
     }
 
     @Override
@@ -137,6 +160,5 @@ public class AuctionServiceImpl implements AuctionService {
             int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.OVER.name());
             log.info("{} auction(s) have now ENDED", count);
         }
-        log.info("No auctions(s) are scheduled to END, {}", getStartTime());
     }
 }

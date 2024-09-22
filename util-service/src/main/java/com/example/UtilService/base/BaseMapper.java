@@ -1,5 +1,7 @@
 package com.example.UtilService.base;
 
+import org.mapstruct.Mapping;
+
 import java.util.List;
 public interface BaseMapper<E, D> {
     D toDto(E entity);

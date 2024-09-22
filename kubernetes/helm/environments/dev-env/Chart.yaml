@@ -37,3 +37,7 @@ dependencies:
   - name: zipkin
     version: 1.0.0
     repository: file://../../components/zipkin
+
+  - name: auction
+    version: 1.0.0
+    repository: file://../../components/auction

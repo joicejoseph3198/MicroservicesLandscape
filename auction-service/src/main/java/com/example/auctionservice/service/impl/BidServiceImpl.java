@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -50,6 +51,9 @@ public class BidServiceImpl implements BidService {
             log.info("Invalid bid amount: {}", bidRequestDTO.amount());
             response.setData("Bid amount is not high enough");
             return  response;
+        }
+        if((auction.getEndTime().isBefore(LocalDateTime.now()))){
+            log.info("Auction expired, bid couldn't be processed: {}", bidRequestDTO.amount());
         }
         return response;
     }

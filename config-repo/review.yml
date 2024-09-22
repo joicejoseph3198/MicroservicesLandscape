@@ -69,10 +69,10 @@ server.port: 8082
 app.eureka-server: discovery
 
 # discovery here is the name of the eureka's k8 service
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://${app.eureka-username}:${app.eureka-password}@discovery:8761/eureka/
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://${app.eureka-username}:${app.eureka-password}@discovery:8761/eureka/
 
 logging:
   level:
@@ -91,6 +91,5 @@ spring:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
-    show-sql: true
 
 spring.cloud.stream.kafka.binder.brokers: kafka

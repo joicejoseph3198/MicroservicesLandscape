@@ -1,0 +1,28 @@
+fullnameOverride: auction
+
+image:
+  name: auction
+
+env:
+  SPRING_PROFILES_ACTIVE: "docker"
+
+ports:
+  - name: http
+    containerPort: 8084
+    protocol: TCP
+
+livenessProbe_enabled: true
+livenessProbe:
+  httpGet:
+    port: 8084
+readinessProbe_enabled: true
+readinessProbe:
+  httpGet:
+    port: 8084
+
+service:
+  ports:
+    - port: 8084
+      targetPort: http
+      protocol: TCP
+      name: http

@@ -1,6 +1,12 @@
 server.port: 8888
-
-spring.cloud.config.server.native.searchLocations: file:${PWD}/config-repo
+spring:
+  profiles:
+    active: native
+  cloud:
+    config:
+      server:
+        native:
+          searchLocations: file:${user.dir}/config-repo
 
 management.endpoint.health.show-details: "ALWAYS"
 management.endpoint.web.exposure.include: "*"

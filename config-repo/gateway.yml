@@ -66,6 +66,11 @@ spring.cloud.gateway:
     predicates:
       - Path=/product/**
 
+  - id: auction
+    uri: http://auction:8084
+    predicates:
+      - Path=/auction/**
+
   - id: auth-server
     uri: http://auth-server:80
     predicates:

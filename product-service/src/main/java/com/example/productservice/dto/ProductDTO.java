@@ -26,4 +26,5 @@ public class ProductDTO {
     private Float weight;
     private Float price;
     private String imageUrl;
+    private Status status;
 }

@@ -8,7 +8,6 @@ import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
-
 import java.time.ZonedDateTime;
 
 @Slf4j

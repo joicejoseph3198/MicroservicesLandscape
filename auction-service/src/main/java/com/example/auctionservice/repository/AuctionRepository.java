@@ -5,9 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,10 +37,19 @@ public interface AuctionRepository extends JpaRepository<Auction,Long> {
     @Query(
             nativeQuery = true,
             value = "UPDATE auction " +
-                    "SET status = ?2 " +
+                    "SET auction_status = ?2 and deleted = true" +
                     "WHERE id IN (?1) AND active = true"
 
     )
     int bulkUpdateStatus(List<Long> ids, String status);
 
+    @Modifying
+    @Query(
+            nativeQuery = true,
+            value = "UPDATE auction " +
+                    "SET deleted = true and active = false and auction_status = OVER" +
+                    "WHERE id IN (?1) AND active = true"
+
+    )
+    int setDeletedTrueById(Long id);
 }

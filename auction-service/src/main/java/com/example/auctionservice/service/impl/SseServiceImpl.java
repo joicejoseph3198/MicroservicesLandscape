@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class SseServiceImpl implements SseService {
     // Map to store auction ID to client IDs and their emitters
+    // Can be a redis HASH with TTL as auction expiry time
     private final Map<Long, Map<String, SseEmitter>> auctionEmitters = new ConcurrentHashMap<>();
 
     @Override
@@ -28,7 +29,7 @@ public class SseServiceImpl implements SseService {
         return emitter;
     }
 
-    // Remove a specific client
+
     private void removeClient(Long auctionId, String clientId) {
         Map<String, SseEmitter> emitters = auctionEmitters.get(auctionId);
         if (emitters != null) {
@@ -46,13 +47,25 @@ public class SseServiceImpl implements SseService {
 
     @Override
     public void notifyNewHighestBid(Long auctionId, String winningBidderId, BigDecimal newHighestBid) {
+        // Notify all participants
+        sendNotificationToAll(auctionId, winningBidderId, BidEventType.NEW_HIGHEST_BID,
+                "New highest bid: " + newHighestBid);
         // Notify the winning bidder
         sendNotificationToClient(auctionId, winningBidderId, BidEventType.BID_ACCEPTED,
                 "Your bid of " + newHighestBid + " is now the highest bid.");
 
-        // Notify all all participants
+    }
+
+    @Override
+    public void notifyAuctionOver(Long auctionId, String winningBidderId) {
+        // Notify all participants
         sendNotificationToAll(auctionId, winningBidderId, BidEventType.NEW_HIGHEST_BID,
-                "New highest bid: " + newHighestBid);
+                "Auction is over.");
+        // Notify with the winner
+        sendNotificationToClient(
+                auctionId, winningBidderId,
+                BidEventType.AUCTION_OVER,
+                "Congratulations! Yours was the winning bid. An email will be shared with you shortly.");
     }
 
     private <T> void sendNotificationToClient(Long auctionId, String clientId, BidEventType eventType, T message) {

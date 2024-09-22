@@ -27,6 +27,7 @@ IMAGES=(
   "microservice-landscape/discovery:latest"
   "microservice-landscape/config-server:latest"
   "microservice-landscape/gateway:latest"
+  "microservice-landscape/auction:latest"
 )
 for image in "${IMAGES[@]}"; do
   kind load docker-image "$image" --name=dev-cluster-multi

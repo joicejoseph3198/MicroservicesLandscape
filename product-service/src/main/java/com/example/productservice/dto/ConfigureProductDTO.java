@@ -9,7 +9,6 @@ public record ConfigureProductDTO(
         String productDescription,
         String brandName,
         String modelNumber,
-        Connectivity connectivity,
         Switches switches,
         KeyCaps keyCaps,
         Layout layout,
@@ -19,5 +18,6 @@ public record ConfigureProductDTO(
         SizeDTO size,
         Float buyNowPrice,
         Float bidStartPrice,
+        Status status,
         List<String> productImages) {
 }

@@ -52,6 +52,7 @@ public class SecurityConfig {
                                 .pathMatchers("/webjars/**").permitAll()
                                 .pathMatchers("/config/**").permitAll()
                                 .pathMatchers("/auth/public/**").permitAll()
+                                .pathMatchers("/product/fetchPage/**").permitAll()
                                 .pathMatchers(HttpMethod.DELETE,"/productComposite/**").hasAuthority("PERMISSION_write:composite")
                                 .pathMatchers(HttpMethod.GET,"/productComposite/**").hasAnyAuthority("PERMISSION_read:composite")
                                 .anyExchange().authenticated()

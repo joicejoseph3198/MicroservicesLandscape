@@ -15,7 +15,8 @@ public class Event<K,T> {
     //Event Type with allowed values
     public enum Type{
         CREATE,
-        DELETE
+        DELETE,
+        UPDATE
     }
     private Event.Type eventType;
     private K key;

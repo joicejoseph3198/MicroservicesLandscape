@@ -42,3 +42,7 @@ review:
 composite:
   envFromSecretRefs:
     - config-client-credentials
+
+auction:
+  envFromSecretRefs:
+    - config-client-credentials

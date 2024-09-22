@@ -1,69 +1,18 @@
-app:
-  auction-service: localhost
+spring.config.import: "optional:configserver:"
 
 spring:
   application.name: auction
-  datasource:
-    driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/auctionbiddb?allowPublicKeyRetrieval=true&useSSL=false
-    username: joice
-    password: password
-  jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
-    hibernate:
-      ddl-auto: update
-
-spring.cloud.stream:
-  defaultBinder: kafka
-  default.contentType: application/json
-  bindings:
-    bidProcessor-in-0:
-      destination: bidTopic
-      group: bidGroup
-      consumer:
-        enableDlq: true
-        maxAttempts: 3
-        backOffInitialInterval: 500
-        backOffMaxInterval: 3000
-        backOffMultiplier: 2.0
-    bidPlace-out-0:
-      destination: bidTopic
-      producer:
-        required-groups: auditGroup
-
-spring.cloud.stream.kafka.binder:
-  brokers: localhost
-  defaultBrokerPort: 9092
-#spring.cloud.stream.kafka.binder:
-#  brokers: kafka
-#  defaultBrokerPort: 9092
-
-
-springdoc.api-docs.path: /api-docs
-springdoc.swagger-ui.path: /swagger-ui.html
+  cloud.config:
+    failFast: true
+    retry:
+      initialInterval: 3000
+      multiplier: 1.3
+      maxInterval: 10000
+      maxAttempts: 20
+    uri: http://${CONFIG_SERVER_USR}:${CONFIG_SERVER_PWD}@localhost:8888
 
 ---
-spring.config.activate.on-profile: docker
-
-server.port: 8084
-
-app.eureka-server: auction
-
 spring:
-  datasource:
-    driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql:3306/auctionbiddb
-    username: joice
-    password: password
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-
-spring.cloud.stream.kafka.binder.brokers: kafka
-
-## To be removed in deployment
-management.zipkin.tracing.endpoint: http://zipkin:9411/api/v2/spans
-management.tracing.sampling.probability: 1.0
-logging.pattern.level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
-spring.codec.log-request-details: true
+  profiles:
+    active: docker
+spring.cloud.config.uri: http://${CONFIG_SERVER_USR}:${CONFIG_SERVER_PWD}@config-server:8888

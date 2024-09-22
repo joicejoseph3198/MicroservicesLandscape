@@ -1,6 +1,7 @@
 package com.example.auctionservice.controller;
 
 import com.example.UtilService.dto.ResponseDTO;
+import com.example.auctionservice.dto.AuctionDetailsDTO;
 import com.example.auctionservice.dto.AuctionScheduleDTO;
 import com.example.auctionservice.entity.Auction;
 import com.example.auctionservice.enums.AuctionStatus;
@@ -26,13 +27,19 @@ public class AuctionController {
 
     @PostMapping("/")
     @Operation(summary = "SCHEDULE an AUCTION by providing required information", security = @SecurityRequirement(name = "Bearer Authentication"))
-    public ResponseDTO<String> scheduleAuction(AuctionScheduleDTO request){
+    public ResponseDTO<String> scheduleAuction(@RequestBody AuctionScheduleDTO request){
         return auctionService.scheduleAuction(request);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "END a given AUCTION", security = @SecurityRequirement(name = "Bearer Authentication"))
+    public ResponseDTO<String> endAuction(@PathVariable(value = "id") Long id){
+        return auctionService.endAuction(id);
     }
 
     @Operation(summary = "find AUCTION associated with provided SKU_CODE")
     @GetMapping(value = "/{skuCode}")
-    public ResponseDTO<Auction> findAuctionBySkuCode(@PathVariable String skuCode){
+    public ResponseDTO<AuctionDetailsDTO> findAuctionBySkuCode(@PathVariable String skuCode){
         return auctionService.findAuctionBySkuCode(skuCode);
     }
 
@@ -45,7 +52,7 @@ public class AuctionController {
     }
 
     @Operation(summary = "API through which SERVER SENT EVENTS (SSE) are sent to the clients. " +
-                         "Clients can register for SSE by calling this endpoint with their emaigil id aka clientId.")
+                         "Clients can register for SSE by calling this endpoint with their email id aka clientId.")
     @GetMapping("/{auctionId}/bid-events")
     public SseEmitter streamBidEvents(@PathVariable Long auctionId, @RequestParam String clientId) {
         return sseService.registerClient(auctionId, clientId);

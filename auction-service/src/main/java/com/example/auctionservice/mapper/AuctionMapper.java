@@ -23,6 +23,5 @@ public interface AuctionMapper extends BaseMapper<Auction, AuctionScheduleDTO> {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
         // Parse the string into a LocalDateTime
         return LocalDateTime.parse(dateTimeString, formatter);
-
     }
 }

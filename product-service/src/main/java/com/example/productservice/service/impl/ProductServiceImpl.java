@@ -36,7 +36,7 @@ public class ProductServiceImpl implements ProductService {
     private final MongoTemplate mongoTemplate;
 
     // Used for testing resiliency
-    private static final int FAULT_PERCENT = 50;
+//    private static final int FAULT_PERCENT = 50;
 
     @Autowired
     public ProductServiceImpl(ProductMapper productMapper, ProductRepository productRepository, MongoTemplate mongoTemplate) {
@@ -50,11 +50,11 @@ public class ProductServiceImpl implements ProductService {
     public ResponseDTO<ConfigureProductDTO> getProductBySkuCode(String skuCode) {
         log.info(">>> getProductById");
         // For testing resiliency
-        int randomThreshold = RandomGenerator.getDefault().nextInt(1, 100);
-        if (FAULT_PERCENT < randomThreshold) {
-            log.info("Bad luck, an error occurred, {} >= {}", FAULT_PERCENT, randomThreshold);
-            throw new UnsupportedOperationException("Something went wrong...[RESILIENCY TESTING]");
-        }
+//        int randomThreshold = RandomGenerator.getDefault().nextInt(1, 100);
+//        if (FAULT_PERCENT < randomThreshold) {
+//            log.info("Bad luck, an error occurred, {} >= {}", FAULT_PERCENT, randomThreshold);
+//            throw new UnsupportedOperationException("Something went wrong...[RESILIENCY TESTING]");
+//        }
 
         ResponseDTO<ConfigureProductDTO> responseDTO =
                 new ResponseDTO<>(Boolean.TRUE, "Request processed successfully.", null);
@@ -84,10 +84,10 @@ public class ProductServiceImpl implements ProductService {
                 .ifPresentOrElse(entity -> {
                     entity.setSkuCode(UUID.randomUUID().toString().substring(0,6));
                     entity.setStatus(Status.UNPUBLISHED);
-                    log.debug("Creating product ({},{}).", entity.getSkuCode() , entity.getStatus());
+                    log.info("Creating product ({},{}).", entity.getSkuCode() , entity.getStatus());
                     productRepository.save(entity);
                 }, () -> {
-                    log.debug("Unable to create product ({}).", productDTO.modelNumber());
+                    log.info("Unable to create product ({}).", productDTO.modelNumber());
                     responseDTO.setStatus(Boolean.FALSE);
                     responseDTO.setMessage("Invalid Request or Duplicate Product");
                 });
@@ -182,6 +182,21 @@ public class ProductServiceImpl implements ProductService {
                     responseDTO.setData("Associated product couldn't be found.");
                 }
         );
+        return responseDTO;
+    }
+
+    @Override
+    public ResponseDTO<String> updateProductStatus(String skuCode, Status status) {
+        ResponseDTO<String> responseDTO = new ResponseDTO<>(Boolean.FALSE,"Request failed.",null);
+        Optional<Product> product = productRepository.findBySkuCode(skuCode);
+        product.ifPresentOrElse(productData->{
+            productData.setStatus(status);
+            productRepository.save(productData);
+            responseDTO.setStatus(Boolean.TRUE);
+            responseDTO.setMessage("Request processed.");
+            responseDTO.setData("Status updated to " + status);
+            log.info("Updated status of product: {}, to {}", skuCode, status);
+        },()-> responseDTO.setData("Product not found."));
         return responseDTO;
     }
 

@@ -23,5 +23,8 @@ dependencies:
 - name: zipkin
   repository: file://../../components/zipkin
   version: 1.0.0
-digest: sha256:5e4ad42b0ef1087ba12d936f403f5f869561a8c4adedf8ef509c86520be1b546
-generated: "2024-02-16T15:51:16.578464623+05:30"
+- name: auction
+  repository: file://../../components/auction
+  version: 1.0.0
+digest: sha256:dd7e65a88b4cdc832c7d340f77ea1bb5fab19cd379e010b20e78122d0b90dcb2
+generated: "2024-09-21T11:17:25.982532262+05:30"

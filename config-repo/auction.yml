@@ -1,0 +1,55 @@
+spring:
+  application.name: auction
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/auctionbiddb?allowPublicKeyRetrieval=true&useSSL=false
+    username: joice
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+
+spring.cloud.stream:
+  defaultBinder: kafka
+  default.contentType: application/json
+  bindings:
+    bidProcessor-in-0:
+      destination: bidTopic
+      group: bidGroup
+      consumer:
+        enableDlq: true
+        maxAttempts: 3
+        backOffInitialInterval: 500
+        backOffMaxInterval: 3000
+        backOffMultiplier: 2.0
+    bidPlace-out-0:
+      destination: bidTopic
+      producer:
+        required-groups: auditGroup
+
+spring.cloud.stream.kafka.binder:
+  brokers: localhost
+  defaultBrokerPort: 9092
+
+
+springdoc.api-docs.path: /api-docs
+springdoc.swagger-ui.path: /swagger-ui.html
+
+---
+spring.config.activate.on-profile: docker
+
+server.port: 8084
+
+spring:
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mysql:3306/auctionbiddb
+    username: joice
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+
+spring.cloud.stream.kafka.binder.brokers: kafka

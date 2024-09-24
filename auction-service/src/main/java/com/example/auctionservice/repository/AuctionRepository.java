@@ -2,7 +2,6 @@ package com.example.auctionservice.repository;
 
 import com.example.auctionservice.entity.Auction;
 import com.example.auctionservice.enums.AuctionStatus;
-import com.example.auctionservice.enums.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -12,7 +11,15 @@ import java.util.Optional;
 
 @Repository
 public interface AuctionRepository extends JpaRepository<Auction,Long> {
-    Optional<Auction> findByProductSkuCode(String skuCode);
+    @Query(
+            nativeQuery = true,
+            value = "SELECT * FROM auction " +
+                    "WHERE product_sku_code = ?1 " +
+                    "AND auction_status IN (?2) " +
+                    "AND active = true " +
+                    "ORDER BY last_modified_date DESC " +
+                    "LIMIT 1")
+    Optional<Auction> findByProductSkuCodeAndAuctionStatusIn(String skuCode, List<AuctionStatus> statuses);
 
     @Query(
             nativeQuery = true,
@@ -25,7 +32,7 @@ public interface AuctionRepository extends JpaRepository<Auction,Long> {
     @Query(
             nativeQuery = true,
             value = "SELECT * FROM auction WHERE start_time BETWEEN ?1 AND ?2 AND active = true"
-     )
+    )
     List<Auction> findByStartTimeBetweenAndActiveTrue(String startDateTime, String endDateTime);
 
     @Query(
@@ -39,7 +46,7 @@ public interface AuctionRepository extends JpaRepository<Auction,Long> {
     @Query(
             nativeQuery = true,
             value = "UPDATE auction " +
-                    "SET auction_status = ?2, deleted = true " +
+                    "SET auction_status = ?2 " +
                     "WHERE id IN (?1) AND active = true"
 
     )
@@ -49,9 +56,8 @@ public interface AuctionRepository extends JpaRepository<Auction,Long> {
     @Query(
             nativeQuery = true,
             value = "UPDATE auction " +
-                    "SET deleted = true and active = false and auction_status = OVER " +
-                    "WHERE id IN (?1) AND active = true"
-
+                    "SET deleted = true, active = false, auction_status = 'OVER' " +
+                    "WHERE product_sku_code = (?1) AND (auction_status = 'LIVE' OR auction_status = 'SCHEDULED')"
     )
-    int setDeletedTrueById(Long id);
+    int setDeletedTrueBySkuCode(String skuCode);
 }

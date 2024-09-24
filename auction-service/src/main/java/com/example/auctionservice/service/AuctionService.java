@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 public interface AuctionService {
     ResponseDTO<String> scheduleAuction(AuctionScheduleDTO request);
-    ResponseDTO<String> endAuction(@RequestParam Long id);
+    ResponseDTO<String> endAuction(String skuCode);
     ResponseDTO<AuctionDetailsDTO> findAuctionBySkuCode(String skuCode);
     ResponseDTO<String> updateStatus(Long auctionId, AuctionStatus auctionStatus);
     void startScheduledAuction();

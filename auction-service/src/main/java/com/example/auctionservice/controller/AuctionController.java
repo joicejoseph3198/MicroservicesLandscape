@@ -31,10 +31,10 @@ public class AuctionController {
         return auctionService.scheduleAuction(request);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{skuCode}")
     @Operation(summary = "END a given AUCTION", security = @SecurityRequirement(name = "Bearer Authentication"))
-    public ResponseDTO<String> endAuction(@PathVariable(value = "id") Long id){
-        return auctionService.endAuction(id);
+    public ResponseDTO<String> endAuction(@PathVariable(value = "skuCode") String skuCode){
+        return auctionService.endAuction(skuCode);
     }
 
     @Operation(summary = "find AUCTION associated with provided SKU_CODE")

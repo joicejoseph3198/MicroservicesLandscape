@@ -2,3 +2,4 @@
 auth0
 **/charts/**
 kubernetes/helm/environments/dev-env/charts/**
+.tgz

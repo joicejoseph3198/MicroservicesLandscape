@@ -48,7 +48,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ResponseDTO<ConfigureProductDTO> getProductBySkuCode(String skuCode) {
-        log.info(">>> getProductById");
+        log.info("Fetching product details for: {}",skuCode.toUpperCase());
         // For testing resiliency
 //        int randomThreshold = RandomGenerator.getDefault().nextInt(1, 100);
 //        if (FAULT_PERCENT < randomThreshold) {
@@ -60,21 +60,20 @@ public class ProductServiceImpl implements ProductService {
                 new ResponseDTO<>(Boolean.TRUE, "Request processed successfully.", null);
         productRepository.findBySkuCode(skuCode)
                 .ifPresentOrElse(product -> {
-                    log.debug("Fetching product({}).", skuCode);
+                    log.debug("Fetching product({}).", skuCode.toUpperCase());
                     ConfigureProductDTO productDTO = productMapper.toDto(product);
                     responseDTO.setData(productDTO);
                 }, () -> {
-                    log.debug("Associated product({}) not found.", skuCode);
+                    log.debug("Associated product({}) not found.", skuCode.toUpperCase());
                     responseDTO.setStatus(Boolean.FALSE);
                     responseDTO.setMessage("No product with the associated productId present.");
                 });
-        log.info("<<< getProductById");
         return responseDTO;
     }
 
     @Override
     public ResponseDTO<String> createProduct(ConfigureProductDTO productDTO) {
-        log.info("received createProduct request");
+        log.info("Received createProduct request");
         ResponseDTO<String> responseDTO =
                 new ResponseDTO<>(Boolean.TRUE, "Product successfully created.", null);
         Optional.ofNullable(productDTO)
@@ -162,7 +161,6 @@ public class ProductServiceImpl implements ProductService {
         if(!CollectionUtils.isEmpty(andCriteriaList)){
             givenQuery.addCriteria(new Criteria().andOperator(andCriteriaList));
         }
-        log.info("finished constructing queries.");
     }
 
     @Override
@@ -195,7 +193,7 @@ public class ProductServiceImpl implements ProductService {
             responseDTO.setStatus(Boolean.TRUE);
             responseDTO.setMessage("Request processed.");
             responseDTO.setData("Status updated to " + status);
-            log.info("Updated status of product: {}, to {}", skuCode, status);
+            log.info("Updated status of product: {}, to {}", skuCode.toUpperCase(), status);
         },()-> responseDTO.setData("Product not found."));
         return responseDTO;
     }

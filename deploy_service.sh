@@ -44,6 +44,7 @@ fi
 # Step 5: Upgrade the Helm release for the specific service
 echo -e "${GREEN}[UPDATING HELM RELEASE]${NC}"
 helm upgrade landscape-dev-env kubernetes/helm/environments/dev-env
+kubectl rollout restart deployment $SERVICE_NAME
 
 end_time=$(date +%s)
 duration=$((end_time - start_time))

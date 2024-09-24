@@ -19,5 +19,6 @@ public record ConfigureProductDTO(
         SizeDTO size,
         Float buyNowPrice,
         Float bidStartPrice,
+        String status,
         List<String> productImages) {
 }

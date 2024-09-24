@@ -40,7 +40,7 @@ public class AuctionServiceImpl implements AuctionService {
         this.productClient = productClient;
     }
 
-    // Helper functions
+    /**Helper functions**/
     private String getStartTime(){
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         return LocalDateTime.now(ZoneId.of("Asia/Kolkata")).withSecond(0).withNano(0).format(formatter);
@@ -60,7 +60,7 @@ public class AuctionServiceImpl implements AuctionService {
         }
         Auction newAuction = auctionMapper.toEntity(request);
         try{
-            productClient.updateProductStatus(request.productSkuCode(), Status.PUBLISHED);
+            productClient.updateProductStatus(request.productSkuCode(), Status.SCHEDULED);
             Auction savedAuction = auctionRepository.save(newAuction);
             log.info("Auction: {}, scheduled from {}-{}, for product: {}", savedAuction.getId(), savedAuction.getStartTime(),
                     savedAuction.getEndTime(), savedAuction.getProductSkuCode().toUpperCase());
@@ -77,10 +77,12 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
-    public ResponseDTO<String> endAuction(Long id) {
-        int count = auctionRepository.setDeletedTrueById(id);
+    @Transactional
+    public ResponseDTO<String> endAuction(String skuCode) {
+        int count = auctionRepository.setDeletedTrueBySkuCode(skuCode);
+        productClient.updateProductStatus(skuCode, Status.UNPUBLISHED);
         log.info("{} record(s) were deleted", count);
-        if(count  > 1)
+        if(count  >= 1)
             return new ResponseDTO<>(Boolean.TRUE, "Record(s) deleted successfully.","Count: "+count);
         else
             return new ResponseDTO<>(Boolean.FALSE, "Record deletion failed.",null);
@@ -89,15 +91,18 @@ public class AuctionServiceImpl implements AuctionService {
     @Override
     public ResponseDTO<AuctionDetailsDTO> findAuctionBySkuCode(String skuCode) {
         ResponseDTO<AuctionDetailsDTO> responseDTO = new ResponseDTO<>(Boolean.TRUE,"Auction data found.",null);
-         auctionRepository.findByProductSkuCode(skuCode).ifPresentOrElse(
-                auction -> {
-                    log.info("Auction associated with product: {} found.", skuCode);
-                    AuctionDetailsDTO auctionDetailsDTO = auctionDetailsMapper.toDto(auction);
-                    responseDTO.setData(auctionDetailsDTO);
-                },()->{
-                    log.info("Associated auction not found for product: {}.",skuCode);
-                    responseDTO.setStatus(Boolean.FALSE);
-                    responseDTO.setMessage("Auction data not found.");
+         auctionRepository.findByProductSkuCodeAndAuctionStatusIn(
+                 skuCode,
+                 List.of(AuctionStatus.LIVE, AuctionStatus.SCHEDULED)
+         ).ifPresentOrElse(
+                 auction -> {
+                     log.info("Auction associated with product: {} found.", skuCode);
+                     AuctionDetailsDTO auctionDetailsDTO = auctionDetailsMapper.toDto(auction);
+                     responseDTO.setData(auctionDetailsDTO);
+                    },()->{
+                     log.info("Associated auction not found for product: {}.",skuCode);
+                     responseDTO.setStatus(Boolean.FALSE);
+                     responseDTO.setMessage("Auction data not found.");
                  }
         );
          return responseDTO;
@@ -135,6 +140,11 @@ public class AuctionServiceImpl implements AuctionService {
                 .toList();
 
         if(!CollectionUtils.isEmpty(liveAuctionList)){
+            auctionList
+                    .stream()
+                    .map(Auction::getProductSkuCode)
+                    .parallel()
+                    .forEach(skuCode -> productClient.updateProductStatus(skuCode, Status.LIVE));
             int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.LIVE);
             log.info("{} auction(s) are now LIVE", count);
         }
@@ -157,6 +167,11 @@ public class AuctionServiceImpl implements AuctionService {
                 .toList();
 
         if(!CollectionUtils.isEmpty(liveAuctionList)){
+            auctionList
+                    .stream()
+                    .map(Auction::getProductSkuCode)
+                    .parallel()
+                    .forEach(skuCode -> productClient.updateProductStatus(skuCode, Status.SOLD));
             int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.OVER);
             log.info("{} auction(s) have now ENDED", count);
         }

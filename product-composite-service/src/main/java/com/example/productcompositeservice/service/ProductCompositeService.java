@@ -4,9 +4,11 @@ import com.example.UtilService.dto.ResponseDTO;
 import com.example.productcompositeservice.dto.ConfigureProductDTO;
 import com.example.productcompositeservice.dto.ProductAggregate;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface ProductCompositeService {
 
-    ResponseDTO<ProductAggregate> getProductAggregate(String productId);
+    CompletableFuture<ResponseDTO<ProductAggregate>> getProductAggregate(String skuCode);
     ResponseDTO<String> deleteComposite(String productId);
     ResponseDTO<String> createProduct(ConfigureProductDTO request);
 }

@@ -5,6 +5,7 @@ import com.example.auctionservice.dto.BidRequestDTO;
 import com.example.auctionservice.service.BidService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,7 +21,7 @@ public class BidController {
     }
 
     @PostMapping("/place-bid")
-    ResponseDTO<String> placeBid(BidRequestDTO bidRequestDTO){
+    ResponseDTO<String> placeBid(@RequestBody BidRequestDTO bidRequestDTO){
         return bidService.placeBid(bidRequestDTO);
     }
 }

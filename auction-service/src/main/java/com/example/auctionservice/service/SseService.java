@@ -1,11 +1,13 @@
 package com.example.auctionservice.service;
 
+import com.example.auctionservice.dto.BidEventDTO;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import reactor.core.publisher.Flux;
 
 import java.math.BigDecimal;
 
 public interface SseService {
-    SseEmitter registerClient(Long auctionId, String clientId);
+    Flux<BidEventDTO<?>> registerClient(Long auctionId, String clientId);
     <T> void notifyBidFailure(Long auctionId, String bidderId, T data);
     void notifyNewHighestBid(Long auctionId, String winningBidderId, BigDecimal newHighestBid);
     void notifyAuctionOver(Long auctionId, String winningBidder);

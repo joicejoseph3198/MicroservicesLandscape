@@ -27,9 +27,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(List.of("http://localhost:5173"));
+        corsConfiguration.setAllowedOrigins(List.of("*"));
         corsConfiguration.setAllowedMethods(List.of("POST", "GET", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        corsConfiguration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "X-XSRF-TOKEN"));
+        corsConfiguration.setAllowedHeaders(List.of("*"));
+        corsConfiguration.setExposedHeaders(List.of("Last-Event-ID"));
+        corsConfiguration.addExposedHeader("Content-Type");
+        corsConfiguration.addExposedHeader("Connection");
+        corsConfiguration.addExposedHeader("Transfer-Encoding"); // Add this for SSE
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**",corsConfiguration);
         return source;
@@ -53,6 +57,7 @@ public class SecurityConfig {
                                 .pathMatchers("/config/**").permitAll()
                                 .pathMatchers("/auth/public/**").permitAll()
                                 .pathMatchers("/product/fetchPage/**").permitAll()
+                                .pathMatchers("/auction/*/bid-events").permitAll()
                                 .pathMatchers(HttpMethod.DELETE,"/productComposite/**").hasAuthority("PERMISSION_write:composite")
                                 .pathMatchers(HttpMethod.GET,"/productComposite/**").hasAnyAuthority("PERMISSION_read:composite")
                                 .anyExchange().authenticated()

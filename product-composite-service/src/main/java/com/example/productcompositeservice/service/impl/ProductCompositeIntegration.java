@@ -4,6 +4,7 @@ import com.example.UtilService.HttpErrorInfo;
 import com.example.UtilService.dto.ResponseDTO;
 import com.example.UtilService.exception.InvalidInputException;
 import com.example.UtilService.exception.NotFoundException;
+import com.example.productcompositeservice.dto.ConfigureProductDTO;
 import com.example.productcompositeservice.dto.ProductDTO;
 import com.example.productcompositeservice.dto.ReviewDTO;
 import com.example.productcompositeservice.feign.ProductClient;
@@ -61,10 +62,10 @@ public class ProductCompositeIntegration {
 
     @Retry(name = "product")
     @CircuitBreaker(name ="product", fallbackMethod = "getProductFallBackValue")
-    public ResponseDTO<ProductDTO> getProduct(String productId){
+    public ResponseDTO<ConfigureProductDTO> getProduct(String productId){
         try {
             LOG.debug("Feign call: getProductById({})",productId);
-            ResponseDTO<ProductDTO> response = productClient.getProductBySkuCode(productId);
+            ResponseDTO<ConfigureProductDTO> response = productClient.getProductBySkuCode(productId);
             LOG.debug("Found associated product for Id: ({})", productId);
             return response;
         } catch (HttpClientErrorException ex) {

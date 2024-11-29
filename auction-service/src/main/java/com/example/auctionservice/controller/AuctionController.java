@@ -3,15 +3,17 @@ package com.example.auctionservice.controller;
 import com.example.UtilService.dto.ResponseDTO;
 import com.example.auctionservice.dto.AuctionDetailsDTO;
 import com.example.auctionservice.dto.AuctionScheduleDTO;
-import com.example.auctionservice.entity.Auction;
+import com.example.auctionservice.dto.BidEventDTO;
 import com.example.auctionservice.enums.AuctionStatus;
 import com.example.auctionservice.service.AuctionService;
 import com.example.auctionservice.service.SseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import reactor.core.publisher.Flux;
 
 @RestController
 @RequestMapping("/auction")
@@ -53,8 +55,11 @@ public class AuctionController {
 
     @Operation(summary = "API through which SERVER SENT EVENTS (SSE) are sent to the clients. " +
                          "Clients can register for SSE by calling this endpoint with their email id aka clientId.")
-    @GetMapping("/{auctionId}/bid-events")
-    public SseEmitter streamBidEvents(@PathVariable Long auctionId, @RequestParam String clientId) {
+    @GetMapping(value = "/{auctionId}/bid-events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<BidEventDTO<?>> streamBidEvents(
+            @PathVariable Long auctionId,
+            @RequestParam String clientId
+    ) {
         return sseService.registerClient(auctionId, clientId);
     }
 

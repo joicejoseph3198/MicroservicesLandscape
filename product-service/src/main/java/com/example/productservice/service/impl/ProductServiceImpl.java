@@ -149,14 +149,16 @@ public class ProductServiceImpl implements ProductService {
             }
         }
         // Create SORT Query
+        Sort sort;
         if(Objects.nonNull(filterProductDTO.sortType())){
-            Sort sort;
             if (Objects.requireNonNull(filterProductDTO.sortType()) == SortType.PRICE_DESC) {
                 sort = Sort.by(Sort.Direction.DESC, "price");
             } else {
                 sort = Sort.by(Sort.Direction.ASC, "price");
             }
             givenQuery.with(sort);
+        }else{
+            sort = Sort.by(Sort.Direction.ASC, "price");
         }
         if(!CollectionUtils.isEmpty(andCriteriaList)){
             givenQuery.addCriteria(new Criteria().andOperator(andCriteriaList));

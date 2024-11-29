@@ -1,13 +1,17 @@
 package com.example.auctionservice.service.impl;
 
+import com.example.auctionservice.dto.BidEventDTO;
 import com.example.auctionservice.enums.BidEventType;
 import com.example.auctionservice.service.SseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
-import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -15,87 +19,106 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class SseServiceImpl implements SseService {
     // Map to store auction ID to client IDs and their emitters
-    // Can be a redis HASH with TTL as auction expiry time
-    private final Map<Long, Map<String, SseEmitter>> auctionEmitters = new ConcurrentHashMap<>();
+    // Sink for each auction to manage events
+    private final Map<Long, Map<String, Sinks.Many<BidEventDTO<?>>>> auctionClientSinks =
+            new ConcurrentHashMap<>();
+
 
     @Override
-    public SseEmitter registerClient(Long auctionId, String clientId) {
-        // Ensure the auction ID exists in the map
-        auctionEmitters.computeIfAbsent(auctionId, k -> new ConcurrentHashMap<>());
-        SseEmitter emitter = new SseEmitter(600000L); // 10 min
-        emitter.onCompletion(() -> removeClient(auctionId, clientId)); // clientId here refers to user's email
-        emitter.onTimeout(() -> removeClient(auctionId, clientId));
-        auctionEmitters.get(auctionId).put(clientId, emitter);
-        return emitter;
+    public Flux<BidEventDTO<?>> registerClient(Long auctionId, String clientId) {
+        // Create or get existing sink for this specific client in the auction
+        Sinks.Many<BidEventDTO<?>> clientSink = auctionClientSinks
+                .computeIfAbsent(auctionId, k -> new ConcurrentHashMap<>())
+                .computeIfAbsent(clientId, k -> Sinks.many().multicast().onBackpressureBuffer());
+
+        return clientSink.asFlux()
+                .doOnSubscribe(subscription -> {
+                    // Send initial connection event to this specific client
+                    emitEventToClient(auctionId, clientId,
+                            new BidEventDTO<>(BidEventType.CONNECTION_ESTABLISHED.name(),
+                                    "Connected successfully for client: " + clientId,
+                                    LocalDateTime.now())
+                    );
+                })
+                .mergeWith(Flux.interval(Duration.ofMinutes(2))
+                        .map(tick -> new BidEventDTO<>(BidEventType.HEART_BEAT.name(), "Ping", LocalDateTime.now())));
     }
 
-
-    private void removeClient(Long auctionId, String clientId) {
-        Map<String, SseEmitter> emitters = auctionEmitters.get(auctionId);
-        if (emitters != null) {
-            emitters.remove(clientId);
-            if (emitters.isEmpty()) {
-                auctionEmitters.remove(auctionId);
-            }
-        }
-    }
 
     @Override
     public <T> void notifyBidFailure(Long auctionId, String bidderId, T message) {
-        sendNotificationToClient(auctionId, bidderId, BidEventType.BID_FAILED, message);
+        emitEventToClient(
+                auctionId,
+                bidderId,
+                new BidEventDTO<>(
+                BidEventType.BID_FAILED.name(),
+                message,
+                LocalDateTime.now()));
     }
 
     @Override
     public void notifyNewHighestBid(Long auctionId, String winningBidderId, BigDecimal newHighestBid) {
-        // Notify all participants
-        sendNotificationToAll(auctionId, winningBidderId, BidEventType.NEW_HIGHEST_BID,
-                "New highest bid: " + newHighestBid);
-        // Notify the winning bidder
-        sendNotificationToClient(auctionId, winningBidderId, BidEventType.BID_ACCEPTED,
-                "Your bid of " + newHighestBid + " is now the highest bid.");
+        // Broadcast to all participants
+        emitEventToAllClients(auctionId,
+                new BidEventDTO<>(
+                        BidEventType.NEW_HIGHEST_BID.name(),
+                        "New highest bid: " + newHighestBid,
+                        LocalDateTime.now()));
 
+        // Send specific message to winning bidder
+        emitEventToClient(auctionId,
+                winningBidderId,
+                new BidEventDTO<>(
+                        BidEventType.BID_ACCEPTED.name(),
+                        "Your bid of " + newHighestBid + " is now the highest bid.",
+                        LocalDateTime.now()));
     }
 
     @Override
     public void notifyAuctionOver(Long auctionId, String winningBidderId) {
-        // Notify all participants
-        sendNotificationToAll(auctionId, winningBidderId, BidEventType.NEW_HIGHEST_BID,
-                "Auction is over.");
-        // Notify with the winner
-        sendNotificationToClient(
-                auctionId, winningBidderId,
-                BidEventType.AUCTION_OVER,
-                "Congratulations! Yours was the winning bid. An email will be shared with you shortly.");
+        // Broadcast auction is concluded to all participants
+        emitEventToAllClients(auctionId,
+                new BidEventDTO<>(
+                        BidEventType.AUCTION_OVER.name(),
+                        "Auction is concluded.",
+                        LocalDateTime.now()));
+
+        // Send winner-specific notification
+        emitEventToClient(auctionId,
+                winningBidderId,
+                new BidEventDTO<>(
+                        BidEventType.AUCTION_OVER.name(),
+                        "Congratulations! You have won the auction.",
+                        LocalDateTime.now()));
     }
 
-    private <T> void sendNotificationToClient(Long auctionId, String clientId, BidEventType eventType, T message) {
-        Map<String, SseEmitter> auctionMap = auctionEmitters.get(auctionId);
-        if (auctionMap != null) {
-            SseEmitter emitter = auctionMap.get(clientId);
-            if (emitter != null) {
+    public void emitEventToClient(Long auctionId, String clientId, BidEventDTO<?> event) {
+        Map<String, Sinks.Many<BidEventDTO<?>>> auctionClients =
+                auctionClientSinks.get(auctionId);
+
+        if (auctionClients != null) {
+            Sinks.Many<BidEventDTO<?>> clientSink = auctionClients.get(clientId);
+            if (clientSink != null) {
                 try {
-                    emitter.send(SseEmitter.event()
-                            .name(eventType.name())
-                            .data(message));
-                } catch (IOException e) {
-                    removeClient(auctionId, clientId);
+                    clientSink.emitNext(event, Sinks.EmitFailureHandler.FAIL_FAST);
+                } catch (Exception e) {
+                    log.error("Failed to emit event for auction {} to client {}",
+                            auctionId, clientId, e);
                 }
             }
         }
     }
 
-    private <T> void sendNotificationToAll(Long auctionId, String excludeClientId, BidEventType eventType, T message) {
-        Map<String, SseEmitter> auctionMap = auctionEmitters.get(auctionId);
-        if (auctionMap != null) {
-            auctionMap.forEach((clientId, emitter) -> {
-                if (!clientId.equals(excludeClientId)) {
-                    try {
-                        emitter.send(SseEmitter.event()
-                                .name(eventType.name())
-                                .data(message));
-                    } catch (IOException e) {
-                        removeClient(auctionId, clientId);
-                    }
+    public void emitEventToAllClients(Long auctionId, BidEventDTO<?> event) {
+        Map<String, Sinks.Many<BidEventDTO<?>>> auctionClients =
+                auctionClientSinks.get(auctionId);
+
+        if (auctionClients != null) {
+            auctionClients.values().forEach(clientSink -> {
+                try {
+                    clientSink.emitNext(event, Sinks.EmitFailureHandler.FAIL_FAST);
+                } catch (Exception e) {
+                    log.error("Failed to broadcast event for auction {}", auctionId, e);
                 }
             });
         }

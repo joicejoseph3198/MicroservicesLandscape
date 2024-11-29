@@ -7,6 +7,8 @@ import com.example.productcompositeservice.service.ProductCompositeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.CompletableFuture;
+
 @RestController
 @RequestMapping(value = "/productComposite")
 public class ProductCompositeController {
@@ -19,7 +21,7 @@ public class ProductCompositeController {
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseDTO<ProductAggregate> getProductAggregate(@PathVariable String id){
+    public CompletableFuture<ResponseDTO<ProductAggregate>> getProductAggregate(@PathVariable String id){
         return productCompositeService.getProductAggregate(id);
     }
 

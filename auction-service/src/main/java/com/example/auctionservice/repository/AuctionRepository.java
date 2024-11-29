@@ -19,7 +19,7 @@ public interface AuctionRepository extends JpaRepository<Auction,Long> {
                     "AND active = true " +
                     "ORDER BY last_modified_date DESC " +
                     "LIMIT 1")
-    Optional<Auction> findByProductSkuCodeAndAuctionStatusIn(String skuCode, List<AuctionStatus> statuses);
+    Optional<Auction> findByProductSkuCodeAndAuctionStatusIn(String skuCode, List<String> statuses);
 
     @Query(
             nativeQuery = true,

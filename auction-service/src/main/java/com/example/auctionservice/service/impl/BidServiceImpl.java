@@ -9,12 +9,15 @@ import com.example.auctionservice.messaging.BidProducer;
 import com.example.auctionservice.repository.AuctionRepository;
 import com.example.auctionservice.repository.BidRepository;
 import com.example.auctionservice.service.BidService;
+import com.example.auctionservice.service.SseService;
 import io.micrometer.common.util.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -24,16 +27,17 @@ import java.util.Optional;
 @Slf4j
 public class BidServiceImpl implements BidService {
     private final BidRepository bidRepository;
-
+    private final SseService notificationService;
     private final AuctionRepository auctionRepository;
     private final BidProducer bidProducer;
 
     @Autowired
     public BidServiceImpl(AuctionRepository auctionRepository, StreamBridge streamBridge, BidProducer bidProducer,
-                          BidRepository bidRepository) {
+                          BidRepository bidRepository, SseService notificationService) {
         this.auctionRepository = auctionRepository;
         this.bidProducer = bidProducer;
         this.bidRepository = bidRepository;
+        this.notificationService = notificationService;
     }
 
     private ResponseDTO<String> validateBid(BidRequestDTO bidRequestDTO){
@@ -99,17 +103,27 @@ public class BidServiceImpl implements BidService {
         Auction auction = auditBid(bidRequest);
         if(!StringUtils.isEmpty(responseDTO.getData())){
             // trigger SSE to notify the user about the failed bid
+            notificationService.notifyBidFailure(bidRequest.auctionId(), bidRequest.user(),responseDTO.getMessage());
             return responseDTO;
         }
         if(Objects.nonNull(auction)){
             auction.setHighestBid(bidRequest.amount());
             auction.setHighestBidder(bidRequest.user());
+            if(bidRequest.buyNowTriggered().equals(Boolean.TRUE)){
+                auction.setAuctionStatus(AuctionStatus.OVER);
+            }
             // update redis as well
             auctionRepository.save(auction);
         }
         log.info("New bid of amount {} by {}",bidRequest.amount(), bidRequest.user());
         // trigger SSE to the client, and notify all participants
-        responseDTO.setData("Bid accepted. New highest bid: "+ auction.getHighestBid());
+        if(bidRequest.buyNowTriggered().equals(Boolean.TRUE)){
+            notificationService.notifyAuctionOver(bidRequest.auctionId(), bidRequest.user());
+            responseDTO.setData("Buy Now Triggered: "+ auction.getHighestBid());
+        }else{
+            notificationService.notifyNewHighestBid(bidRequest.auctionId(), bidRequest.user(), bidRequest.amount());
+            responseDTO.setData("Bid accepted. New highest bid: "+ auction.getHighestBid());
+        }
         return responseDTO;
     }
 

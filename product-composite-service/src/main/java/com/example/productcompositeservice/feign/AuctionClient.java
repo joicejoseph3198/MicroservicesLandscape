@@ -1,14 +1,14 @@
 package com.example.productcompositeservice.feign;
 
 import com.example.UtilService.dto.ResponseDTO;
-import com.example.productcompositeservice.dto.ConfigureProductDTO;
+import com.example.productcompositeservice.dto.AuctionDetailsDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
-@FeignClient("product")
-public interface ProductClient {
+@FeignClient("auction")
+public interface AuctionClient {
 
-    @GetMapping("/product/{id}")
-    public ResponseDTO<ConfigureProductDTO> getProductBySkuCode(@PathVariable String id);
+    @GetMapping(value = "/auction/{skuCode}")
+    public ResponseDTO<AuctionDetailsDTO> findAuctionBySkuCode(@PathVariable String skuCode);
 }

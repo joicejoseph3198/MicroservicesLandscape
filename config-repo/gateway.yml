@@ -91,8 +91,8 @@ management.endpoint.health.show-details: "ALWAYS"
 logging:
   level:
     root: ERROR
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.web.server.adapter.HttpWebHandlerAdapter: DEBUG
+    org.springframework.cloud.gateway: INFO
+    org.springframework.web.server.adapter.HttpWebHandlerAdapter: ERROR
 
 # to configure gateway to use the certificate and HTTPS
 server.ssl:

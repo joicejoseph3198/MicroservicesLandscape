@@ -30,3 +30,7 @@ service:
       targetPort: http
       protocol: TCP
       name: http
+
+resources:
+  limits:
+    memory: 512Mi

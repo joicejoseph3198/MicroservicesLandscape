@@ -93,7 +93,7 @@ public class AuctionServiceImpl implements AuctionService {
         ResponseDTO<AuctionDetailsDTO> responseDTO = new ResponseDTO<>(Boolean.TRUE,"Auction data found.",null);
          auctionRepository.findByProductSkuCodeAndAuctionStatusIn(
                  skuCode,
-                 List.of(AuctionStatus.LIVE, AuctionStatus.SCHEDULED)
+                 List.of(AuctionStatus.LIVE.name(), AuctionStatus.SCHEDULED.name())
          ).ifPresentOrElse(
                  auction -> {
                      log.info("Auction associated with product: {} found.", skuCode);

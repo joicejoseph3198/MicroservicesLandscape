@@ -5,7 +5,6 @@ import com.example.auctionservice.enums.BidEventType;
 import com.example.auctionservice.service.SseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
@@ -23,7 +22,6 @@ public class SseServiceImpl implements SseService {
     private final Map<Long, Map<String, Sinks.Many<BidEventDTO<?>>>> auctionClientSinks =
             new ConcurrentHashMap<>();
 
-
     @Override
     public Flux<BidEventDTO<?>> registerClient(Long auctionId, String clientId) {
         // Create or get existing sink for this specific client in the auction
@@ -40,6 +38,22 @@ public class SseServiceImpl implements SseService {
                                     LocalDateTime.now())
                     );
                 })
+                .doOnCancel(() -> {
+                    // Remove the sink when the client disconnects
+                    Map<String, Sinks.Many<BidEventDTO<?>>> auctionClients =
+                            auctionClientSinks.get(auctionId);
+                    if (auctionClients != null) {
+                        auctionClients.remove(clientId);
+                        log.info("Removed sink for client {} in auction {}", clientId, auctionId);
+                        // Clean up auction map if no more clients
+                        if (auctionClients.isEmpty()) {
+                            auctionClientSinks.remove(auctionId);
+                            log.info("Cleaned up empty auction {}", auctionId);
+                        }
+                    }
+                })
+                .doOnError(error -> log.error("Stream error for auction {} and client {}: {}",
+                        auctionId, clientId, error.getMessage(), error))
                 .mergeWith(Flux.interval(Duration.ofMinutes(2))
                         .map(tick -> new BidEventDTO<>(BidEventType.HEART_BEAT.name(), "Ping", LocalDateTime.now())));
     }

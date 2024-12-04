@@ -5,18 +5,24 @@ import com.example.auctionservice.dto.AuctionDetailsDTO;
 import com.example.auctionservice.dto.AuctionScheduleDTO;
 import com.example.auctionservice.dto.BidEventDTO;
 import com.example.auctionservice.enums.AuctionStatus;
+import com.example.auctionservice.enums.BidEventType;
 import com.example.auctionservice.service.AuctionService;
 import com.example.auctionservice.service.SseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/auction")
+@Slf4j
 public class AuctionController {
     private final AuctionService auctionService;
     private final SseService sseService;
@@ -60,7 +66,18 @@ public class AuctionController {
             @PathVariable Long auctionId,
             @RequestParam String clientId
     ) {
-        return sseService.registerClient(auctionId, clientId);
+        return sseService.registerClient(auctionId, clientId)
+                .onErrorResume(ex -> {
+                    log.error("Error in bid events stream for auction {} and client {}",
+                            auctionId, clientId, ex);
+                    return Flux.empty();
+                })
+                .doFinally(signalType -> {
+                    log.info("Bid events stream completed for auction {} and client {} with signal {}",
+                            auctionId, clientId, signalType);
+                })
+                .timeout(Duration.ofMinutes(30),
+                        Flux.just(new BidEventDTO<>(BidEventType.CONNECTION_DISRUPTED.name(), "Connection timed out", LocalDateTime.now())));
     }
 
 }

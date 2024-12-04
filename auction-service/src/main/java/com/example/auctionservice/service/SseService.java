@@ -1,7 +1,6 @@
 package com.example.auctionservice.service;
 
 import com.example.auctionservice.dto.BidEventDTO;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
 import java.math.BigDecimal;

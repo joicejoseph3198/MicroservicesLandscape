@@ -104,29 +104,6 @@ services:
     networks:
       - kind
 
-  mysql-2:
-    container_name: mysql-2
-    image: mysql:8.0.32
-    mem_limit: 512m
-    volumes:
-      - sqldata-2:/var/lib/mysql
-    ports:
-      - "3307:3306"
-    expose:
-      - "3307"
-    environment:
-      - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_USER=joice
-      - MYSQL_PASSWORD=password
-      - MYSQL_DATABASE=authdb
-    healthcheck:
-      test: "mysql -u root -p$$MYSQL_ROOT_PASSWORD  -e 'SHOW DATABASES'"
-      interval: 5s
-      timeout: 2s
-      retries: 60
-    networks:
-      - kind
-
   kafka:
     container_name: kafka
     image: confluentinc/cp-kafka:7.3.1
@@ -258,11 +235,24 @@ services:
       - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
     networks:
       - kind
-
+#  redis:
+#    image: redis:6.2-alpine
+#    restart: always
+#    mem_limit: 512m
+#    ports:
+#      - '6379:6379'
+#    healthcheck:
+#      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+#      interval: 1s
+#      timeout: 3s
+#      retries: 5
+#    command: redis-server --save 20 1 --loglevel warning
+#    volumes:
+#      - cache:/data/cache
 volumes:
   sqldata:
-  sqldata-2:
   mongodata:
+  cache:
 
 networks:
   kind:

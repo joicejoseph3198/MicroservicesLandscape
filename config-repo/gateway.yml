@@ -57,7 +57,7 @@ spring.cloud.gateway:
 #      - Path=/eureka/**
 
   - id: review
-    uri: http://review:8082
+    uri: http://review
     predicates:
       - Path=/review/**
 

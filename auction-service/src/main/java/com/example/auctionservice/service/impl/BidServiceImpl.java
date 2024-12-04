@@ -45,19 +45,20 @@ public class BidServiceImpl implements BidService {
         // Introduce redis to make this API faster
         Optional<Auction> associatedAuction = auctionRepository.findAuctionByIdAndStatus(bidRequestDTO.auctionId(), AuctionStatus.LIVE.name());
         if(associatedAuction.isEmpty()){
-            response.setData("No associated LIVE auction was found.");
+            response.setMessage("No associated LIVE auction was found.");
             log.info("Auction not found for id: {}", bidRequestDTO.auctionId());
             return response;
         }
         Auction auction = associatedAuction.get();
         if(( bidRequestDTO.amount().compareTo(auction.getBidStartPrice()) <= 0 ) ||
-           (bidRequestDTO.amount().compareTo(Optional.ofNullable(auction.getHighestBid()).orElse(BigDecimal.ZERO)) <= 0 )){
+           (bidRequestDTO.amount().compareTo(Optional.ofNullable(auction.getHighestBid()).orElse(auction.getBidStartPrice())) <= 0 )){
             log.info("Invalid bid amount: {}", bidRequestDTO.amount());
-            response.setData("Bid amount is not high enough");
+            response.setMessage("Bid amount is not high enough");
             return  response;
         }
         if((auction.getEndTime().isBefore(LocalDateTime.now()))){
             log.info("Auction expired, bid couldn't be processed: {}", bidRequestDTO.amount());
+            response.setMessage("Auction expired, bid couldn't be processed");
         }
         return response;
     }

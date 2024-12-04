@@ -11,6 +11,7 @@ import com.example.auctionservice.mapper.AuctionDetailsMapper;
 import com.example.auctionservice.mapper.AuctionMapper;
 import com.example.auctionservice.repository.AuctionRepository;
 import com.example.auctionservice.service.AuctionService;
+import com.example.auctionservice.service.SseService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +32,15 @@ public class AuctionServiceImpl implements AuctionService {
     private final AuctionMapper auctionMapper;
     private final AuctionDetailsMapper auctionDetailsMapper;
     private final ProductClient productClient;
+    private final SseService notificationService;
 
     @Autowired
-    public AuctionServiceImpl(AuctionRepository auctionRepository, AuctionMapper auctionMapper, AuctionDetailsMapper auctionDetailsMapper, ProductClient productClient) {
+    public AuctionServiceImpl(AuctionRepository auctionRepository, AuctionMapper auctionMapper, AuctionDetailsMapper auctionDetailsMapper, ProductClient productClient, SseService sseService) {
         this.auctionRepository = auctionRepository;
         this.auctionMapper = auctionMapper;
         this.auctionDetailsMapper = auctionDetailsMapper;
         this.productClient = productClient;
+        this.notificationService = sseService;
     }
 
     /**Helper functions**/
@@ -169,9 +172,11 @@ public class AuctionServiceImpl implements AuctionService {
         if(!CollectionUtils.isEmpty(liveAuctionList)){
             auctionList
                     .stream()
-                    .map(Auction::getProductSkuCode)
                     .parallel()
-                    .forEach(skuCode -> productClient.updateProductStatus(skuCode, Status.SOLD));
+                    .forEach(auction -> {
+                        productClient.updateProductStatus(auction.getProductSkuCode(), Status.SOLD);
+                        notificationService.notifyAuctionOver(auction.getId(), auction.getHighestBidder());
+                    });
             int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.OVER);
             log.info("{} auction(s) have now ENDED", count);
         }

@@ -15,7 +15,7 @@ for f in ./*; do [ -d "$f" ] && [ -f "$f/pom.xml" ] && (cd "$f" && mvn clean ins
 # Step 3: Build Docker Compose services
 echo -e "${GREEN}[UPDATING DOCKER CONTAINERS]${NC}"
 docker compose build
-docker compose up mongodb mysql kafka zookeeper kafka-ui -d --build
+docker compose up mongodb mysql kafka zookeeper kafka-ui elasticsearch logstash kibana -d --build
 
 # Step 4: Load Docker images into Kind cluster
 echo -e "${GREEN}[LOAD IMAGES TO THE CLUSTER]${NC}"

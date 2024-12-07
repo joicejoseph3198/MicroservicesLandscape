@@ -219,11 +219,15 @@ services:
     restart: always
     mem_limit: 1024m
     environment:
-      - STORAGE_TYPE=mem
+      - STORAGE_TYPE=elasticsearch
+      - ES_HOSTS=elasticsearch:9200
+    depends_on:
+      - elasticsearch
     ports:
      - "9411:9411"
     networks:
      - kind
+
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: 'rabbitmq'
@@ -233,6 +237,45 @@ services:
     volumes:
       - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/
       - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+      - kind
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - kind
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.14.0
+    container_name: logstash
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+      - elasticsearch-data:/usr/share/elasticsearch/data  # Shared volume with Elasticsearch
+    ports:
+      - "5044:5044"
+    depends_on:
+      - elasticsearch
+    networks:
+      - kind
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.14.0
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
     networks:
       - kind
 #  redis:
@@ -253,6 +296,8 @@ volumes:
   sqldata:
   mongodata:
   cache:
+  elasticsearch-data:
+  logstash-data:
 
 networks:
   kind:

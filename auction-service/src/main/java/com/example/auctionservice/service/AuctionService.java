@@ -14,4 +14,5 @@ public interface AuctionService {
     ResponseDTO<String> updateStatus(Long auctionId, AuctionStatus auctionStatus);
     void startScheduledAuction();
     void endScheduledAuction();
+    void purgeStaleAuction();
 }

@@ -12,6 +12,7 @@ import com.example.auctionservice.mapper.AuctionMapper;
 import com.example.auctionservice.repository.AuctionRepository;
 import com.example.auctionservice.service.AuctionService;
 import com.example.auctionservice.service.SseService;
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -146,7 +147,6 @@ public class AuctionServiceImpl implements AuctionService {
             auctionList
                     .stream()
                     .map(Auction::getProductSkuCode)
-                    .parallel()
                     .forEach(skuCode -> productClient.updateProductStatus(skuCode, Status.LIVE));
             int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.LIVE);
             log.info("{} auction(s) are now LIVE", count);
@@ -171,14 +171,35 @@ public class AuctionServiceImpl implements AuctionService {
 
         if(!CollectionUtils.isEmpty(liveAuctionList)){
             auctionList
-                    .stream()
-                    .parallel()
                     .forEach(auction -> {
                         productClient.updateProductStatus(auction.getProductSkuCode(), Status.SOLD);
                         notificationService.notifyAuctionOver(auction.getId(), auction.getHighestBidder());
                     });
             int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.OVER);
             log.info("{} auction(s) have now ENDED", count);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void purgeStaleAuction() {
+        List<Auction> staleAuctions = auctionRepository.findByEndTimeBeforeAndActiveTrue(LocalDateTime.now());
+
+        List<Long> staleAuctionIds = Optional.ofNullable(staleAuctions)
+                .orElse(Collections.emptyList())
+                .stream()
+                .filter(Objects::nonNull)
+                .map(Auction::getId)
+                .toList();
+
+        if(!CollectionUtils.isEmpty(staleAuctionIds)){
+            staleAuctions
+                    .forEach(auction -> {
+                        productClient.updateProductStatus(auction.getProductSkuCode(), Status.SOLD);
+                        notificationService.notifyAuctionOver(auction.getId(), auction.getHighestBidder());
+                    });
+            int count = auctionRepository.bulkUpdateStatus(staleAuctionIds, AuctionStatus.OVER);
+            log.info("{} auction(s) have been purged", count);
         }
     }
 }

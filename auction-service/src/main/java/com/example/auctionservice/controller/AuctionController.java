@@ -34,9 +34,18 @@ public class AuctionController {
     }
 
     @PostMapping("/")
-    @Operation(summary = "SCHEDULE an AUCTION by providing required information", security = @SecurityRequirement(name = "Bearer Authentication"))
+    @Operation(summary = "SCHEDULE an AUCTION by providing required information",
+            security = @SecurityRequirement(name = "Bearer Authentication"))
     public ResponseDTO<String> scheduleAuction(@RequestBody AuctionScheduleDTO request){
         return auctionService.scheduleAuction(request);
+    }
+
+    @DeleteMapping("/cleanup")
+    @Operation(summary = "Cleans up stale auctions in the system. Triggered Manually",
+            security = @SecurityRequirement(name = "Bearer Authentication"))
+    public ResponseDTO<String> cleanStaleAuction(){
+        auctionService.purgeStaleAuction();
+        return new ResponseDTO<>(Boolean.TRUE,"Request accepted",null);
     }
 
     @DeleteMapping("/{skuCode}")

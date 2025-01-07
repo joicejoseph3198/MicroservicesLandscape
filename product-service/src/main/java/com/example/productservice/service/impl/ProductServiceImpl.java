@@ -26,6 +26,7 @@ import org.springframework.util.CollectionUtils;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.random.RandomGenerator;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -36,7 +37,7 @@ public class ProductServiceImpl implements ProductService {
     private final MongoTemplate mongoTemplate;
 
     // Used for testing resiliency
-//    private static final int FAULT_PERCENT = 50;
+    // private static final int FAULT_PERCENT = 50;
 
     @Autowired
     public ProductServiceImpl(ProductMapper productMapper, ProductRepository productRepository, MongoTemplate mongoTemplate) {
@@ -44,6 +45,20 @@ public class ProductServiceImpl implements ProductService {
         this.productRepository = productRepository;
         this.mongoTemplate = mongoTemplate;
         this.faker = new Faker();
+    }
+
+    // Get the order for a given status string
+    public static Integer getOrder(String status) {
+        if (status == null) {
+            return Integer.MAX_VALUE; // Default for unknown or null statuses
+        }
+        return switch (status.toUpperCase()) {
+            case "START BIDDING" -> 1;
+            case "COMING SOON" -> 2;
+            case "SOLD OUT" -> 3;
+            case "PRODUCT UNAVAILABLE" -> 4;
+            default -> Integer.MAX_VALUE; // Default for unrecognized statuses
+        };
     }
 
     @Override
@@ -111,11 +126,12 @@ public class ProductServiceImpl implements ProductService {
                         addCriteriaToQuery(request,dynamicQuery)
                 );
         List<Product> queryResult = mongoTemplate.find(dynamicQuery, Product.class);
-        List<ConfigureProductDTO> productList = productMapper.toDtoList(queryResult);
+        List<ConfigureProductDTO> productList = productMapper.toDtoList(queryResult).stream()
+                .sorted(Comparator.comparingInt(p->getOrder(p.status())))
+                .toList();
         return PageableExecutionUtils.getPage(productList, pageable,
                 ()-> mongoTemplate.count(dynamicQuery, Product.class));
     }
-
     /*
     creates criteria based on input fields and their values, and adds them to the provided query (givenQuery)
     */
@@ -158,7 +174,7 @@ public class ProductServiceImpl implements ProductService {
             }
             givenQuery.with(sort);
         }else{
-            sort = Sort.by(Sort.Direction.ASC, "price");
+            givenQuery.with(Sort.by(Sort.Direction.DESC, "lastModifiedDate"));
         }
         if(!CollectionUtils.isEmpty(andCriteriaList)){
             givenQuery.addCriteria(new Criteria().andOperator(andCriteriaList));

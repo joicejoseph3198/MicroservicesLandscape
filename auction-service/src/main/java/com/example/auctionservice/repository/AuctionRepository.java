@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,4 +62,6 @@ public interface AuctionRepository extends JpaRepository<Auction,Long> {
                     "WHERE product_sku_code = (?1) AND (auction_status = 'LIVE' OR auction_status = 'SCHEDULED')"
     )
     int setDeletedTrueBySkuCode(String skuCode);
+
+    List<Auction> findByEndTimeBeforeAndActiveTrue(LocalDateTime localDateTime);
 }

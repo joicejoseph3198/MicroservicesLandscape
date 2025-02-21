@@ -43,4 +43,9 @@ public class ProductController {
             @RequestParam Status productStatus){
         return productService.updateProductStatus(skuCode,productStatus);
     }
+
+    @PostMapping("/search-sync")
+    public ResponseDTO<String> syncProductToSearchIndex(){
+        return productService.syncSearch();
+    }
 }

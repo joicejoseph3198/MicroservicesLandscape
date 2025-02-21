@@ -109,7 +109,6 @@ public class SseServiceImpl implements SseService {
     public void emitEventToClient(Long auctionId, String clientId, BidEventDTO<?> event) {
         Map<String, Sinks.Many<BidEventDTO<?>>> auctionClients =
                 auctionClientSinks.get(auctionId);
-
         if (auctionClients != null) {
             Sinks.Many<BidEventDTO<?>> clientSink = auctionClients.get(clientId);
             if (clientSink != null) {

@@ -13,5 +13,6 @@ public interface ProductService {
     ResponseDTO<String> deleteProduct(String productId);
     Page<ConfigureProductDTO> filterData(FilterProductDTO filterProductDTO);
     ResponseDTO<String> updateProductStatus(String skuCode, Status status);
+    ResponseDTO<String> syncSearch();
 
 }

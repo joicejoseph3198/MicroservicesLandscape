@@ -46,3 +46,7 @@ composite:
 auction:
   envFromSecretRefs:
     - config-client-credentials
+
+search:
+  envFromSecretRefs:
+    - config-client-credentials

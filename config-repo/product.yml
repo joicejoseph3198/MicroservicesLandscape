@@ -21,19 +21,26 @@ logging:
     org.hibernate: ERROR
     org.springframework.data.mongodb.core.MongoTemplate: ERROR
 
+
+spring.cloud.function:
+  definition: productMessageProcessor
 spring.cloud.stream:
   defaultBinder: kafka
   default.contentType: application/json
-  bindings:
-    productMessageProcessor-in-0:
-      destination: productTopic
-      group: productGroup
-      consumer:
-        enableDlq: true
-        maxAttempts: 3
-        backOffInitialInterval: 500
-        backOffMaxInterval: 1000
-        backOffMultiplier: 2.0
+  bindings.productMessageProcessor-in-0:
+    destination: productTopic
+    group: productGroup
+    consumer:
+      enableDlq: true
+      maxAttempts: 3
+      backOffInitialInterval: 500
+      backOffMaxInterval: 1000
+      backOffMultiplier: 2
+  bindings.syncSearchIndex-out-0:
+    destination: searchTopic
+    producer:
+      required-groups: auditGroup
+
 
 spring.cloud.stream.kafka.binder:
   brokers: kafka

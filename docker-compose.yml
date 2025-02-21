@@ -66,6 +66,23 @@ services:
     networks:
       - kind
 
+  search:
+    container_name: search
+    image: microservice-landscape/search
+    build: ./search-service
+    mem_limit: 512M
+    ports:
+      - "8085:8085"
+    depends_on:
+      - config-server
+      - redis
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
+    networks:
+      - kind
+
   mongodb:
     container_name: mongo
     image: mongo:6.0.4
@@ -278,24 +295,28 @@ services:
       - elasticsearch
     networks:
       - kind
-#  redis:
-#    image: redis:6.2-alpine
-#    restart: always
-#    mem_limit: 512m
-#    ports:
-#      - '6379:6379'
-#    healthcheck:
-#      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
-#      interval: 1s
-#      timeout: 3s
-#      retries: 5
-#    command: redis-server --save 20 1 --loglevel warning
-#    volumes:
-#      - cache:/data/cache
+  redis:
+    image: redis/redis-stack:latest
+    restart: always
+    container_name: redis
+    mem_limit: 512m
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+    command: redis-stack-server --save 20 1 --loglevel warning --appendonly yes
+    volumes:
+      - redis-data:/data/redis-data
+    networks:
+      - kind
+
 volumes:
   sqldata:
   mongodata:
-  cache:
+  redis-data:
   elasticsearch-data:
   logstash-data:
 

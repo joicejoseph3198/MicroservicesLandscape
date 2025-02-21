@@ -41,3 +41,7 @@ dependencies:
   - name: auction
     version: 1.0.0
     repository: file://../../components/auction
+
+  - name: search
+    version: 1.0.0
+    repository: file://../../components/search

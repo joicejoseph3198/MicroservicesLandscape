@@ -1,0 +1,53 @@
+server:
+  port: 8085
+management.endpoint.health.show-details: "ALWAYS"
+
+spring.cloud.function:
+  definition: searchProcessor
+spring.cloud.stream:
+  defaultBinder: kafka
+  default.contentType: application/json
+  bindings.searchProcessor-in-0:
+    destination: searchTopic
+    group: searchGroup
+    consumer:
+      maxAttempts: 3
+      backOffInitialInterval: 500
+      backOffMaxInterval: 1000
+      backOffMultiplier: 2.0
+
+spring.cloud.stream.kafka.binder:
+  brokers: kafka
+  defaultBrokerPort: 9092
+
+# To allow observability
+spring.cloud.stream.kafka.binder.enableObservation: true
+
+spring.application.name: search
+
+logging:
+  level:
+    root: ERROR
+    org.springframework.web: INFO
+    com.example: INFO
+    org.hibernate: ERROR
+
+redis:
+  host: localhost
+  port: 6379
+---
+spring.config.activate.on-profile: docker
+
+server.port: 8085
+
+logging:
+  level:
+    root: ERROR
+    org.springframework.web: ERROR
+    com.example: INFO
+    org.hibernate: ERROR
+
+spring.cloud.stream.kafka.binder.brokers: kafka
+
+redis:
+  host: redis

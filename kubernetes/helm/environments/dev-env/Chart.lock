@@ -26,5 +26,8 @@ dependencies:
 - name: auction
   repository: file://../../components/auction
   version: 1.0.0
-digest: sha256:dd7e65a88b4cdc832c7d340f77ea1bb5fab19cd379e010b20e78122d0b90dcb2
-generated: "2024-09-21T11:17:25.982532262+05:30"
+- name: search
+  repository: file://../../components/search
+  version: 1.0.0
+digest: sha256:e34aa3378553fbde61aefcbe414918161c921b2929c57bf7dd32cdbda3f23800
+generated: "2025-01-28T19:09:47.686724422+05:30"

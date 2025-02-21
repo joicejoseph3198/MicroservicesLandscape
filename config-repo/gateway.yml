@@ -71,6 +71,11 @@ spring.cloud.gateway:
     predicates:
       - Path=/auction/**
 
+  - id: search
+    uri: http://search:8085
+    predicates:
+      - Path=/search/**
+
   - id: auth-server
     uri: http://auth-server:80
     predicates:
@@ -96,10 +101,11 @@ logging:
 
 # to configure gateway to use the certificate and HTTPS
 server.ssl:
-  key-store-type: PKCS12 #  format for storing or transporting a user's private keys, certificates
-  key-store: classpath:keystore/edge.p12
-  key-store-password: password
+  key-store-type: PKCS12 # format for storing or transporting a user's private keys, certificates
+  key-store: ${KEYSTORE_P12:classpath:keystore/edge.p12}
+  key-store-password: ${KEYSTORE_PASSWORD:password}
   key-alias: localhost
+
 
 spring:
   security:

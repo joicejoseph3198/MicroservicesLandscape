@@ -3,9 +3,11 @@ package com.example.productservice.service.impl;
 import com.example.UtilService.dto.ResponseDTO;
 import com.example.productservice.dto.ConfigureProductDTO;
 import com.example.productservice.dto.FilterProductDTO;
+import com.example.productservice.dto.SearchIndexDTO;
 import com.example.productservice.entity.Product;
 import com.example.productservice.enums.*;
 import com.example.productservice.mapper.ProductMapper;
+import com.example.productservice.messaging.SearchProducer;
 import com.example.productservice.repository.ProductRepository;
 import com.example.productservice.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -35,15 +38,17 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final Faker faker;
     private final MongoTemplate mongoTemplate;
+    private final SearchProducer searchProducer;
 
     // Used for testing resiliency
     // private static final int FAULT_PERCENT = 50;
 
     @Autowired
-    public ProductServiceImpl(ProductMapper productMapper, ProductRepository productRepository, MongoTemplate mongoTemplate) {
+    public ProductServiceImpl(ProductMapper productMapper, ProductRepository productRepository, MongoTemplate mongoTemplate, SearchProducer searchProducer) {
         this.productMapper = productMapper;
         this.productRepository = productRepository;
         this.mongoTemplate = mongoTemplate;
+        this.searchProducer = searchProducer;
         this.faker = new Faker();
     }
 
@@ -87,26 +92,37 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public ResponseDTO<String> createProduct(ConfigureProductDTO productDTO) {
-        log.info("Received createProduct request");
-        ResponseDTO<String> responseDTO =
-                new ResponseDTO<>(Boolean.TRUE, "Product successfully created.", null);
-        Optional.ofNullable(productDTO)
-                .filter(product ->
-                        !productRepository.existsByModelNumber(product.modelNumber()))
-                .map(productMapper::toEntity)
-                .ifPresentOrElse(entity -> {
-                    entity.setSkuCode(UUID.randomUUID().toString().substring(0,6));
-                    entity.setStatus(Status.UNPUBLISHED);
-                    log.info("Creating product ({},{}).", entity.getSkuCode() , entity.getStatus());
-                    productRepository.save(entity);
-                }, () -> {
-                    log.info("Unable to create product ({}).", productDTO.modelNumber());
-                    responseDTO.setStatus(Boolean.FALSE);
-                    responseDTO.setMessage("Invalid Request or Duplicate Product");
-                });
-        log.info("finished processing createProduct request");
-        return responseDTO;
+        try {
+            log.info("Received createProduct request");
+            ResponseDTO<String> responseDTO =
+                    new ResponseDTO<>(Boolean.TRUE, "Product successfully created.", null);
+            Optional.ofNullable(productDTO)
+                    .filter(product ->
+                            !productRepository.existsByModelNumber(product.modelNumber()))
+                    .map(productMapper::toEntity)
+                    .ifPresentOrElse(entity -> {
+                        entity.setSkuCode(UUID.randomUUID().toString().substring(0, 6));
+                        entity.setStatus(Status.UNPUBLISHED);
+                        log.info("Creating product ({},{}).", entity.getSkuCode(), entity.getStatus());
+                        productRepository.save(entity);
+                        SearchIndexDTO searchIndexDTO = new SearchIndexDTO(
+                                entity.getProductName(),
+                                entity.getBrandName(),
+                                entity.getProductDescription(),
+                                entity.getSkuCode());
+                        searchProducer.createSearchEntry(searchIndexDTO);
+                    }, () -> {
+                        log.info("Unable to create product ({}).", productDTO.modelNumber());
+                        responseDTO.setStatus(Boolean.FALSE);
+                        responseDTO.setMessage("Invalid Request or Duplicate Product");
+                    });
+            log.info("finished processing createProduct request");
+            return responseDTO;
+        }catch (Exception e){
+            log.error("Error creating product : {}", productDTO.skuCode());
+        }
     }
 
     /*
@@ -214,6 +230,27 @@ public class ProductServiceImpl implements ProductService {
             log.info("Updated status of product: {}, to {}", skuCode.toUpperCase(), status);
         },()-> responseDTO.setData("Product not found."));
         return responseDTO;
+    }
+
+    @Override
+    public ResponseDTO<String> syncSearch() {
+        List<Product> productCatalogue = productRepository.findByStatusNotIn(List.of(Status.UNPUBLISHED));
+        if(!productCatalogue.isEmpty()){
+            productCatalogue.stream()
+                    .map(product -> {
+                        return new SearchIndexDTO(
+                                product.getProductName(),
+                                product.getBrandName(),
+                                product.getProductDescription(),
+                                product.getSkuCode());
+                    })
+                    .forEach(searchProducer::createSearchEntry);
+        }
+        return ResponseDTO.<String>builder()
+                .status(Boolean.TRUE)
+                .message("Request processed successfully")
+                .data(null)
+                .build();
     }
 
 }

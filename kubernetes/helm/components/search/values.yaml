@@ -1,0 +1,39 @@
+fullnameOverride: search
+
+image:
+  name: search
+
+env:
+  SPRING_PROFILES_ACTIVE: "docker"
+
+ports:
+  - name: http
+    containerPort: 8085
+    protocol: TCP
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 2
+  targetMemoryUtilizationPercentage: 80
+
+livenessProbe_enabled: true
+livenessProbe:
+  httpGet:
+    port: 8085
+
+readinessProbe_enabled: true
+readinessProbe:
+  httpGet:
+    port: 8085
+
+service:
+  ports:
+    - port: 8085
+      targetPort: http
+      protocol: TCP
+      name: http
+
+resources:
+  limits:
+    memory: 512Mi

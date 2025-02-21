@@ -1,23 +1,24 @@
 package com.example.productservice.dto;
 
 import com.example.productservice.enums.*;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
 public record ConfigureProductDTO(
-        String productName,
-        String productDescription,
-        String brandName,
+        @NotNull String productName,
+        @NotNull String productDescription,
+        @NotNull String brandName,
         String modelNumber,
         Switches switches,
         KeyCaps keyCaps,
         Layout layout,
         Category category,
-        String skuCode,
+        @NotNull String skuCode,
         Float weight,
         SizeDTO size,
-        Float buyNowPrice,
-        Float bidStartPrice,
+        @NotNull Float buyNowPrice,
+        @NotNull Float bidStartPrice,
         String status,
         List<String> productImages) {
 }

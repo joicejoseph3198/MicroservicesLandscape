@@ -36,4 +36,12 @@ public class SearchProducer {
         streamBridge.send(SEARCH_BINDING, message);
         log.info("Event queued for further processing");
     }
+
+    public void deleteSearchEntry(String skuCode){
+        log.info("Unpublishing product skuCode: {} from search indexing", skuCode);
+        Event<String, Object> event = new Event<>(Event.Type.DELETE, skuCode, null, ZonedDateTime.now());
+        Message<Event<String, Object>> message = generateMessage(event);
+        streamBridge.send(SEARCH_BINDING, message);
+        log.info("Queued for further processing");
+    }
 }

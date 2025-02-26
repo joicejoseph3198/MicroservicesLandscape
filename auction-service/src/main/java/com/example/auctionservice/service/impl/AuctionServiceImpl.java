@@ -84,7 +84,7 @@ public class AuctionServiceImpl implements AuctionService {
     @Transactional
     public ResponseDTO<String> endAuction(String skuCode) {
         int count = auctionRepository.setDeletedTrueBySkuCode(skuCode);
-        productClient.updateProductStatus(skuCode, Status.UNPUBLISHED);
+        productClient.updateProductStatus(skuCode, Status.SOLD);
         log.info("{} record(s) were deleted", count);
         if(count  >= 1)
             return new ResponseDTO<>(Boolean.TRUE, "Record(s) deleted successfully.","Count: "+count);
@@ -97,7 +97,7 @@ public class AuctionServiceImpl implements AuctionService {
         ResponseDTO<AuctionDetailsDTO> responseDTO = new ResponseDTO<>(Boolean.TRUE,"Auction data found.",null);
          auctionRepository.findByProductSkuCodeAndAuctionStatusIn(
                  skuCode,
-                 List.of(AuctionStatus.LIVE.name(), AuctionStatus.SCHEDULED.name())
+                 List.of(AuctionStatus.LIVE.name(), AuctionStatus.SCHEDULED.name(), AuctionStatus.OVER.name())
          ).ifPresentOrElse(
                  auction -> {
                      log.info("Auction associated with product: {} found.", skuCode);
@@ -145,9 +145,10 @@ public class AuctionServiceImpl implements AuctionService {
 
         if(!CollectionUtils.isEmpty(liveAuctionList)){
             auctionList
-                    .stream()
-                    .map(Auction::getProductSkuCode)
-                    .forEach(skuCode -> productClient.updateProductStatus(skuCode, Status.LIVE));
+                    .forEach(auction -> {
+                        productClient.updateProductStatus(auction.getProductSkuCode(), Status.LIVE);
+                        notificationService.notifyAuctionStart(auction.getId());
+                    });
             int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.LIVE);
             log.info("{} auction(s) are now LIVE", count);
         }
@@ -173,7 +174,7 @@ public class AuctionServiceImpl implements AuctionService {
             auctionList
                     .forEach(auction -> {
                         productClient.updateProductStatus(auction.getProductSkuCode(), Status.SOLD);
-                        notificationService.notifyAuctionOver(auction.getId(), auction.getHighestBidder());
+                        notificationService.notifyAuctionOver(auction.getId(), auction.getHighestBidder(), auction.getHighestBid());
                     });
             int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.OVER);
             log.info("{} auction(s) have now ENDED", count);
@@ -196,7 +197,6 @@ public class AuctionServiceImpl implements AuctionService {
             staleAuctions
                     .forEach(auction -> {
                         productClient.updateProductStatus(auction.getProductSkuCode(), Status.SOLD);
-                        notificationService.notifyAuctionOver(auction.getId(), auction.getHighestBidder());
                     });
             int count = auctionRepository.bulkUpdateStatus(staleAuctionIds, AuctionStatus.OVER);
             log.info("{} auction(s) have been purged", count);

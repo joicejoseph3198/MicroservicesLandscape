@@ -1,6 +1,7 @@
 package com.example.auctionservice.service.impl;
 
 import com.example.auctionservice.dto.BidEventDTO;
+import com.example.auctionservice.enums.AuctionStatus;
 import com.example.auctionservice.enums.BidEventType;
 import com.example.auctionservice.service.SseService;
 import lombok.extern.slf4j.Slf4j;
@@ -89,21 +90,31 @@ public class SseServiceImpl implements SseService {
     }
 
     @Override
-    public void notifyAuctionOver(Long auctionId, String winningBidderId) {
+    public void notifyAuctionOver(Long auctionId, String winningBidderId, BigDecimal highestBid) {
         // Broadcast auction is concluded to all participants
         emitEventToAllClients(auctionId,
                 new BidEventDTO<>(
                         BidEventType.AUCTION_OVER.name(),
-                        "Auction is concluded.",
+                        "Auction is concluded. Sold for: Rs. " + highestBid,
                         LocalDateTime.now()));
 
         // Send winner-specific notification
         emitEventToClient(auctionId,
                 winningBidderId,
                 new BidEventDTO<>(
-                        BidEventType.AUCTION_OVER.name(),
+                        BidEventType.AUCTION_WON.name(),
                         "Congratulations! You have won the auction.",
                         LocalDateTime.now()));
+    }
+
+    @Override
+    public void notifyAuctionStart(Long auctionId) {
+        emitEventToAllClients(auctionId,
+                new BidEventDTO<>(
+                         AuctionStatus.LIVE.name(),
+                        "The auction has commenced. Start placing your bids.",
+                        LocalDateTime.now()));
+
     }
 
     public void emitEventToClient(Long auctionId, String clientId, BidEventDTO<?> event) {

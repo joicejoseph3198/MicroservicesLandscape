@@ -56,7 +56,6 @@ spring:
 logging:
   level:
     root: ERROR
-    org.springframework.cloud.gateway: ERROR
     org.springframework.security: INFO
     org.springframework.web: INFO
     org.springframework.http: INFO

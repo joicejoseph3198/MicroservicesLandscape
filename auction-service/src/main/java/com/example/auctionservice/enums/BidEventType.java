@@ -7,5 +7,6 @@ public enum BidEventType {
     NEW_HIGHEST_BID,
     BID_ACCEPTED,
     AUCTION_OVER,
-    HEART_BEAT
+    HEART_BEAT,
+    AUCTION_WON,
 }

@@ -9,6 +9,7 @@ image:
 env:
   STORAGE_TYPE: elasticsearch
   ES_HOSTS: http://elasticsearch:9200
+  JAVA_OPTS: -Xms512m -Xmx1g
 
 ports:
   - name: http
@@ -40,8 +41,10 @@ readinessProbe:
   successThreshold: 1
 
 resources:
+  requests:
+    memory: "512Mi"  # Minimum memory guaranteed
   limits:
-    memory: 512Mi
+    memory: "1Gi"    # Maximum memory allowed before OOMKill
 
 service:
   ports:
@@ -49,3 +52,25 @@ service:
       targetPort: 9411
       protocol: 'TCP'
       name: http
+
+# Zipkin dependency job configuration
+dependency:
+  enabled: true
+  schedule: "0 */1 * * *"  # Run every hour
+  image:
+    repository: registry.hub.docker.com/openzipkin/zipkin-dependencies
+    tag: latest
+    pullPolicy: IfNotPresent
+  env:
+    - name: STORAGE_TYPE
+      value: elasticsearch
+    - name: ES_HOSTS
+      value: http://elasticsearch:9200
+    # Reuse the same ES configuration from the main Zipkin service
+    # Add any additional dependency-specific environment variables here
+  resources:
+    requests:
+      memory: "256Mi"
+    limits:
+      memory: "1Gi"
+  restartPolicy: OnFailure

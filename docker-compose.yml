@@ -239,6 +239,8 @@ services:
       - STORAGE_TYPE=elasticsearch
       - ES_HOSTS=elasticsearch:9200
     depends_on:
+      - logstash
+      - kibana
       - elasticsearch
     ports:
      - "9411:9411"

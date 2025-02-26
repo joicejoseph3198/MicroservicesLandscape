@@ -122,6 +122,7 @@ public class ProductServiceImpl implements ProductService {
             return responseDTO;
         }catch (Exception e){
             log.error("Error creating product : {}", productDTO.skuCode());
+            return null;
         }
     }
 
@@ -224,6 +225,9 @@ public class ProductServiceImpl implements ProductService {
         product.ifPresentOrElse(productData->{
             productData.setStatus(status);
             productRepository.save(productData);
+            if(productData.getStatus().equals(Status.UNPUBLISHED)){
+                searchProducer.deleteSearchEntry(productData.getSkuCode());
+            }
             responseDTO.setStatus(Boolean.TRUE);
             responseDTO.setMessage("Request processed.");
             responseDTO.setData("Status updated to " + status);

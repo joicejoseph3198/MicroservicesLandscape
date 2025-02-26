@@ -93,12 +93,6 @@ spring.cloud.gateway:
 management.endpoint.gateway.enabled: true
 management.endpoint.health.show-details: "ALWAYS"
 
-logging:
-  level:
-    root: ERROR
-    org.springframework.cloud.gateway: INFO
-    org.springframework.web.server.adapter.HttpWebHandlerAdapter: ERROR
-
 # to configure gateway to use the certificate and HTTPS
 server.ssl:
   key-store-type: PKCS12 # format for storing or transporting a user's private keys, certificates

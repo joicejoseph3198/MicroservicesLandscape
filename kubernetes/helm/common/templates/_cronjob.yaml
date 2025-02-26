@@ -1,0 +1,37 @@
+{{- define "common.cronjob" -}}
+  {{- if .Values.dependency.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "common.fullname" . }}-dependency
+  labels:
+    app.kubernetes.io/name: {{ include "common.name" . }}-dependency
+    helm.sh/chart: {{ include "common.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  schedule: "{{ .Values.dependency.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: {{ include "common.name" . }}-dependency
+              image: "{{ .Values.dependency.image.repository }}:{{ .Values.dependency.image.tag }}"
+              imagePullPolicy: {{ .Values.dependency.image.pullPolicy }}
+              env:
+              {{- range .Values.dependency.env }}
+              - name: {{ .name }}
+                value: {{ .value | quote }}
+              {{- end }}
+              {{- if .Values.env }}
+              {{- range $key, $value := .Values.env }}
+              - name: {{ $key }}
+                value: {{ $value | quote }}
+              {{- end }}
+              {{- end }}
+              resources:
+                {{- toYaml .Values.dependency.resources | nindent 14 }}
+          restartPolicy: {{ .Values.dependency.restartPolicy }}
+  {{- end }}
+  {{- end -}}

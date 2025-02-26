@@ -18,7 +18,6 @@ public interface AuctionRepository extends JpaRepository<Auction,Long> {
             value = "SELECT * FROM auction " +
                     "WHERE product_sku_code = ?1 " +
                     "AND auction_status IN (?2) " +
-                    "AND active = true " +
                     "ORDER BY last_modified_date DESC " +
                     "LIMIT 1")
     Optional<Auction> findByProductSkuCodeAndAuctionStatusIn(String skuCode, List<String> statuses);

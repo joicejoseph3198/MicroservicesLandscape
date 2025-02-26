@@ -6,5 +6,5 @@ import com.example.auctionservice.dto.BidRequestDTO;
 public interface BidService {
     ResponseDTO<String> placeBid(BidRequestDTO bidRequestDTO);
 
-    ResponseDTO<String> processBid(BidRequestDTO request);
+    void processBid(BidRequestDTO request);
 }

@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
 import java.time.Duration;
@@ -41,7 +40,7 @@ public class AuctionController {
     }
 
     @DeleteMapping("/cleanup")
-    @Operation(summary = "Cleans up stale auctions in the system. Triggered Manually",
+    @Operation(summary = "CLEANS up STALE AUCTIONS in the system. Triggered Manually",
             security = @SecurityRequirement(name = "Bearer Authentication"))
     public ResponseDTO<String> cleanStaleAuction(){
         auctionService.purgeStaleAuction();

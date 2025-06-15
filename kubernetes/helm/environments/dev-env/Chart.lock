@@ -29,5 +29,8 @@ dependencies:
 - name: search
   repository: file://../../components/search
   version: 1.0.0
-digest: sha256:e34aa3378553fbde61aefcbe414918161c921b2929c57bf7dd32cdbda3f23800
-generated: "2025-01-28T19:09:47.686724422+05:30"
+- name: auction-consumer
+  repository: file://../../components/auction-consumer
+  version: 1.0.0
+digest: sha256:2df967a012b406d10f1f3f1ab2b0d824ad04e4f88a0897f89fc1594b489edeea
+generated: "2025-06-14T17:57:04.906702849+05:30"

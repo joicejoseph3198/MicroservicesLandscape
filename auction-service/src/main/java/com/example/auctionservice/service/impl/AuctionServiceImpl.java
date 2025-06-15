@@ -1,5 +1,19 @@
 package com.example.auctionservice.service.impl;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+import com.example.auctionservice.messaging.AuctionProducer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import com.example.UtilService.dto.ResponseDTO;
 import com.example.auctionservice.dto.AuctionDetailsDTO;
 import com.example.auctionservice.dto.AuctionScheduleDTO;
@@ -12,18 +26,9 @@ import com.example.auctionservice.mapper.AuctionMapper;
 import com.example.auctionservice.repository.AuctionRepository;
 import com.example.auctionservice.service.AuctionService;
 import com.example.auctionservice.service.SseService;
-import jakarta.annotation.PostConstruct;
+
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 
 @Service
 @Slf4j
@@ -34,14 +39,16 @@ public class AuctionServiceImpl implements AuctionService {
     private final AuctionDetailsMapper auctionDetailsMapper;
     private final ProductClient productClient;
     private final SseService notificationService;
+    private final AuctionProducer auctionProducer;
 
     @Autowired
-    public AuctionServiceImpl(AuctionRepository auctionRepository, AuctionMapper auctionMapper, AuctionDetailsMapper auctionDetailsMapper, ProductClient productClient, SseService sseService) {
+    public AuctionServiceImpl(AuctionRepository auctionRepository, AuctionMapper auctionMapper, AuctionDetailsMapper auctionDetailsMapper, ProductClient productClient, SseService sseService, AuctionProducer auctionProducer) {
         this.auctionRepository = auctionRepository;
         this.auctionMapper = auctionMapper;
         this.auctionDetailsMapper = auctionDetailsMapper;
         this.productClient = productClient;
         this.notificationService = sseService;
+        this.auctionProducer = auctionProducer;
     }
 
     /**Helper functions**/
@@ -81,7 +88,6 @@ public class AuctionServiceImpl implements AuctionService {
     }
 
     @Override
-    @Transactional
     public ResponseDTO<String> endAuction(String skuCode) {
         int count = auctionRepository.setDeletedTrueBySkuCode(skuCode);
         productClient.updateProductStatus(skuCode, Status.SOLD);
@@ -119,6 +125,7 @@ public class AuctionServiceImpl implements AuctionService {
         auction.ifPresentOrElse(auctionData->{
             auctionData.setAuctionStatus(auctionStatus);
             auctionRepository.save(auctionData);
+            auctionProducer.produceAuctionPublishEvent(auctionData);
             responseDTO.setStatus(Boolean.TRUE);
             responseDTO.setMessage("Request processed.");
             responseDTO.setData("Status updated to " + auctionStatus);
@@ -148,6 +155,7 @@ public class AuctionServiceImpl implements AuctionService {
                     .forEach(auction -> {
                         productClient.updateProductStatus(auction.getProductSkuCode(), Status.LIVE);
                         notificationService.notifyAuctionStart(auction.getId());
+                        auctionProducer.produceAuctionPublishEvent(auction);
                     });
             int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.LIVE);
             log.info("{} auction(s) are now LIVE", count);
@@ -175,6 +183,7 @@ public class AuctionServiceImpl implements AuctionService {
                     .forEach(auction -> {
                         productClient.updateProductStatus(auction.getProductSkuCode(), Status.SOLD);
                         notificationService.notifyAuctionOver(auction.getId(), auction.getHighestBidder(), auction.getHighestBid());
+                        auctionProducer.produceAuctionUnPublishEvent(auction.getId());
                     });
             int count = auctionRepository.bulkUpdateStatus(liveAuctionList, AuctionStatus.OVER);
             log.info("{} auction(s) have now ENDED", count);
@@ -194,11 +203,8 @@ public class AuctionServiceImpl implements AuctionService {
                 .toList();
 
         if(!CollectionUtils.isEmpty(staleAuctionIds)){
-            staleAuctions
-                    .forEach(auction -> {
-                        productClient.updateProductStatus(auction.getProductSkuCode(), Status.SOLD);
-                    });
             int count = auctionRepository.bulkUpdateStatus(staleAuctionIds, AuctionStatus.OVER);
+            staleAuctionIds.forEach(auctionProducer::produceAuctionUnPublishEvent);
             log.info("{} auction(s) have been purged", count);
         }
     }

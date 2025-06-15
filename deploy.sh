@@ -1,4 +1,6 @@
 #!/bin/bash
+ROOT_DIR="$(pwd)"
+echo "Root directory: $ROOT_DIR"
 
 GREEN='\033[0;32m'
 NC='\033[0m'
@@ -29,6 +31,7 @@ IMAGES=(
   "microservice-landscape/gateway:latest"
   "microservice-landscape/auction:latest"
   "microservice-landscape/search:latest"
+  "microservice-landscape/auction-consumer:latest"
 )
 for image in "${IMAGES[@]}"; do
   kind load docker-image "$image" --name=dev-cluster-multi
@@ -36,12 +39,12 @@ done
 
 # Step 5: Update Helm dependencies
 echo -e "${GREEN}[UPDATING HELM DEPENDENCIES]${NC}"
-for f in kubernetes/helm/components/*; do helm dep up $f; done && for f in kubernetes/helm/environments/*; do helm dep up $f; done
+for f in "$ROOT_DIR/kubernetes/helm/components/"*; do helm dep up $f; done && for f in "$ROOT_DIR/kubernetes/helm/environments/"*; do helm dep up $f; done
 
 # Step 6: Uninstall and reinstall the Helm release
 echo -e "${GREEN}[RE INSTALLING HELM RELEASE]${NC}"
 helm uninstall landscape-dev-env || true
-helm install landscape-dev-env kubernetes/helm/environments/dev-env
+helm install landscape-dev-env "$ROOT_DIR/kubernetes/helm/environments/dev-env"
 
 
 end_time=$(date +%s)

@@ -50,3 +50,7 @@ auction:
 search:
   envFromSecretRefs:
     - config-client-credentials
+
+auction-consumer:
+  envFromSecretRefs:
+    - config-client-credentials

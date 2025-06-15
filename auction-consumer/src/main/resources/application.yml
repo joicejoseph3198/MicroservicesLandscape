@@ -1,0 +1,18 @@
+spring.config.import: "optional:configserver:"
+
+spring:
+  application.name: auction-consumer
+  cloud.config:
+    failFast: true
+    retry:
+      initialInterval: 3000
+      multiplier: 1.3
+      maxInterval: 10000
+      maxAttempts: 20
+    uri: http://${CONFIG_SERVER_USR}:${CONFIG_SERVER_PWD}@localhost:8888
+
+---
+spring:
+  profiles:
+    active: docker
+spring.cloud.config.uri: http://${CONFIG_SERVER_USR}:${CONFIG_SERVER_PWD}@config-server:8888

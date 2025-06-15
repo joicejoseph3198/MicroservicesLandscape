@@ -24,7 +24,7 @@ fi
 
 # Step 2: Build Docker Compose services
 echo -e "${GREEN}[UPDATING DOCKER CONTAINERS]${NC}"
-docker compose build "$SERVICE_NAME"
+docker compose build --no-cache "$SERVICE_NAME"
 
 # Step 3: Load Docker images into Kind cluster for the specific service
 echo -e "${GREEN}[LOAD IMAGES TO THE CLUSTER]${NC}"

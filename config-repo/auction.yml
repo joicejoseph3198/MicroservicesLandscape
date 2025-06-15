@@ -30,6 +30,9 @@ spring.cloud.stream:
     destination: bidTopic
     producer:
       required-groups: auditGroup
+  bindings.auctionTable-out-0:
+    destination: auctionsTopic
+    default.contentType: application/json
 
 spring.cloud.stream.kafka.binder.enableObservation: true
 spring.cloud.stream.kafka.binder:

@@ -1,0 +1,32 @@
+fullnameOverride: auction-consumer
+
+image:
+  name: auction-consumer
+
+env:
+  SPRING_PROFILES_ACTIVE: "docker"
+
+ports:
+  - name: http
+    containerPort: 8086
+    protocol: TCP
+
+livenessProbe_enabled: true
+livenessProbe:
+  httpGet:
+    port: 8086
+readinessProbe_enabled: true
+readinessProbe:
+  httpGet:
+    port: 8086
+
+service:
+  ports:
+    - port: 8086
+      targetPort: http
+      protocol: TCP
+      name: http
+
+resources:
+  limits:
+    memory: 512Mi

@@ -1,0 +1,61 @@
+spring:
+  application.name: auction-consumer
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/auctionbiddb?allowPublicKeyRetrieval=true&useSSL=false
+    username: joice
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+
+management.endpoint.health.show-details: ALWAYS
+management.tracing.enabled: true
+
+spring.cloud.stream:
+  bindings:
+    auctionKTableFunc-in-0:
+      destination: auctionsTopic
+      content-type: application/json
+  kafka:
+    streams:
+      binder:
+        configuration:
+          application.id: auction-consumer
+          default.key.serde: org.apache.kafka.common.serialization.Serdes$StringSerde
+          default.value.serde: org.springframework.kafka.support.serializer.JsonSerde
+          spring.json.value.default.type: com.example.UtilService.base.Event
+      bindings:
+        auctionKTableFunc-in-0:
+          consumer:
+            materialized-as: auctions-store
+  function:
+    definition: auctionKTableFunc
+
+springdoc.api-docs.path: /api-docs
+springdoc.swagger-ui.path: /swagger-ui.html
+
+---
+spring.config.activate.on-profile: docker
+server.port: 8086
+spring:
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mysql:3306/auctionbiddb
+    username: joice
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+      show-sql: true
+logging:
+  level:
+    root: ERROR
+    org.springframework.security: INFO
+    org.springframework.web: INFO
+    org.springframework.http: INFO
+
+spring.cloud.stream.kafka.binder.brokers: kafka:9092
+

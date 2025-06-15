@@ -45,3 +45,7 @@ dependencies:
   - name: search
     version: 1.0.0
     repository: file://../../components/search
+
+  - name: auction-consumer
+    version: 1.0.0
+    repository: file://../../components/auction-consumer

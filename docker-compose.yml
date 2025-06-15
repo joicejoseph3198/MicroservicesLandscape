@@ -66,6 +66,24 @@ services:
     networks:
       - kind
 
+  auction-consumer:
+    container_name: auction-consumer
+    image: microservice-landscape/auction-consumer
+    build: ./auction-consumer
+    mem_limit: 512m
+    ports:
+      - "8086:8086"
+    depends_on:
+      - config-server
+      - mysql
+      - discovery
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - CONFIG_SERVER_USR=${CONFIG_SERVER_USR}
+      - CONFIG_SERVER_PWD=${CONFIG_SERVER_PWD}
+    networks:
+      - kind
+
   search:
     container_name: search
     image: microservice-landscape/search
